@@ -1,8 +1,11 @@
 package com.epam.esm.models;
 
+import java.util.List;
+
 public class Tag {
     private long id;
     private String name;
+    private List<GiftCertificate> certificates;
 
     public Tag() {
     }
@@ -28,6 +31,17 @@ public class Tag {
         this.name = name;
     }
 
+    public List<GiftCertificate> getCertificates() {
+        return certificates;
+    }
+
+    public void setCertificates(List<GiftCertificate> certificates) {
+        this.certificates = certificates;
+    }
+    public void addCertificate(GiftCertificate certificate) {
+        this.certificates.add(certificate);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -51,6 +65,7 @@ public class Tag {
         return "Tag{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
+                ", certificates=" + certificates +
                 '}';
     }
 }
