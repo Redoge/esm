@@ -11,9 +11,9 @@ import java.util.Set;
 public interface GiftCertificateDaoInterface {
     List<GiftCertificateMainDto> findAll();
     Optional<GiftCertificateMainDto> findById(long id);
-    Set<GiftCertificateMainDto> findByPartNameOrDescriptionAndTagNameAndSortedByName(String nameOrDescription, String tagName);
-    Set<GiftCertificateMainDto> findByPartNameOrDescriptionAndSortedByName(String nameOrDescription);
-    Set<GiftCertificateMainDto> findByTagNameAndSortedByName(String tagName);
+    Set<GiftCertificateMainDto> findByPartNameOrDescriptionAndTagName(String nameOrDescription, String tagName);
+    Set<GiftCertificateMainDto> findByPartNameOrDescription(String nameOrDescription);
+    Set<GiftCertificateMainDto> findByTagName(String tagName);
     boolean deleteById(long id);
     boolean update(GiftCertificate giftCertificate);
     boolean save(GiftCertificate giftCertificate);
