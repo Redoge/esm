@@ -10,6 +10,9 @@ import java.util.Set;
 public interface TagDaoInterface {
     List<TagMainDto> findAll();
     Optional<TagMainDto> findById(long id);
+    Optional<TagMainDto> findByName(String name);
     boolean deleteById(long id);
     boolean save(String tagName);
+    boolean removeFromGiftCertificateByTagIdAndCertId(long tagId, long certId);
+    boolean addTagToCertificateByTagIdAndCertId(long tagId, long certId);
 }

@@ -15,6 +15,6 @@ public interface GiftCertificateDaoInterface {
     Set<GiftCertificateMainDto> findByPartNameOrDescription(String nameOrDescription);
     Set<GiftCertificateMainDto> findByTagName(String tagName);
     boolean deleteById(long id);
-    boolean update(GiftCertificate giftCertificate);
+    boolean update(GiftCertificateMainDto giftCertificate);
     boolean save(GiftCertificate giftCertificate);
 }
