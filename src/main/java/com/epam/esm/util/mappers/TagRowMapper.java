@@ -28,15 +28,17 @@ public class TagRowMapper implements RowMapper<TagMainDto>, ToListRowMapperInter
         tag.setName(rs.getString("tag_name"));
         List<GiftCertificateNestedDto> certificates = new ArrayList<>();
         do {
-            GiftCertificateNestedDto giftCertificate = new GiftCertificateNestedDto();
-            giftCertificate.setId(rs.getLong("gift_certificate_id"));
-            giftCertificate.setName(rs.getString("gift_certificate_name"));
-            giftCertificate.setDescription(rs.getString("gift_certificate_description"));
-            giftCertificate.setPrice(rs.getBigDecimal("gift_certificate_price"));
-            giftCertificate.setDuration(rs.getInt("gift_certificate_duration"));
-            giftCertificate.setCreateDate(timeFormatter.timeToIso8601(rs.getObject("gift_certificate_create_date", LocalDateTime.class)));
-            giftCertificate.setLastUpdateDate(timeFormatter.timeToIso8601(rs.getObject("gift_certificate_last_update_date", LocalDateTime.class)));
-            certificates.add(giftCertificate);
+            if(rs.getLong("gift_certificate_id")!=0) {
+                GiftCertificateNestedDto giftCertificate = new GiftCertificateNestedDto();
+                giftCertificate.setId(rs.getLong("gift_certificate_id"));
+                giftCertificate.setName(rs.getString("gift_certificate_name"));
+                giftCertificate.setDescription(rs.getString("gift_certificate_description"));
+                giftCertificate.setPrice(rs.getBigDecimal("gift_certificate_price"));
+                giftCertificate.setDuration(rs.getInt("gift_certificate_duration"));
+                giftCertificate.setCreateDate(timeFormatter.timeToIso8601(rs.getObject("gift_certificate_create_date", LocalDateTime.class)));
+                giftCertificate.setLastUpdateDate(timeFormatter.timeToIso8601(rs.getObject("gift_certificate_last_update_date", LocalDateTime.class)));
+                certificates.add(giftCertificate);
+            }
         } while (rs.next() && tag.getId() == rs.getLong("tag_id"));
         tag.setCertificates(certificates);
         return tag;
@@ -44,44 +46,53 @@ public class TagRowMapper implements RowMapper<TagMainDto>, ToListRowMapperInter
 
     @Override
     public List<TagMainDto> mapRowToList(List<Map<String, Object>> rows) {
-        if(rows == null || rows.size()==0) return List.of();
-        rows.sort(Comparator.comparing(k->Long.parseLong(String.valueOf(k.get("tag_id")))));
+        if (rows == null || rows.size() == 0) return List.of();
+        rows.sort(Comparator.comparing(k -> Long.parseLong(String.valueOf(k.get("tag_id")))));
         List<TagMainDto> result = new ArrayList<>();
         Map<Long, List<GiftCertificateNestedDto>> resultCertificatesMap = new HashMap<>();
         TagMainDto tmpTag = null;
-        for(int i = 0; i < rows.size(); i++) {
+        for (int i = 0; i < rows.size(); i++) {
             Map<String, Object> rowMap = rows.get(i);
-            if(tmpTag == null){
+            if (tmpTag == null) {
                 tmpTag = new TagMainDto();
                 tmpTag.setId(Long.parseLong(String.valueOf(rowMap.get("tag_id"))));
                 tmpTag.setName(String.valueOf(rowMap.get("tag_name")));
             }
-            if(tmpTag.getId() == Long.parseLong(String.valueOf(rowMap.get("tag_id")))){
-                if(resultCertificatesMap.get(tmpTag.getId())!=null){
+            if (tmpTag.getId() == Long.parseLong(String.valueOf(rowMap.get("tag_id")))) {
+                if (resultCertificatesMap.get(tmpTag.getId()) != null) {
                     resultCertificatesMap.get(tmpTag.getId()).add(buildGiftCertificateNestedDto(rowMap));
-                }else{
-                    resultCertificatesMap.put(tmpTag.getId(), new LinkedList<>(
-                            List.of(buildGiftCertificateNestedDto(rowMap))));
+                } else {
+                    var gc = buildGiftCertificateNestedDto(rowMap);
+                    if (gc != null) {
+                        resultCertificatesMap.put(tmpTag.getId(), new LinkedList<>(
+                                List.of(gc)));
+                    }
                 }
-            }else{
+            } else {
                 result.add(tmpTag);
                 tmpTag = null;
                 i--;
             }
         }
-        result.add(tmpTag);
-        addGiftCertificateNestedDtoToTagMainDto(result, resultCertificatesMap);
+            result.add(tmpTag);
+            addGiftCertificateNestedDtoToTagMainDto(result, resultCertificatesMap);
+
         return result;
     }
 
     private void addGiftCertificateNestedDtoToTagMainDto(
             List<TagMainDto> result, Map<Long, List<GiftCertificateNestedDto>> resultCertificatesMap){
         for(var tag: result){
-            tag.setCertificates(resultCertificatesMap.get(tag.getId()));
+            if(resultCertificatesMap.get(tag.getId())!=null) {
+                tag.setCertificates(resultCertificatesMap.get(tag.getId()));
+            }else{
+                tag.setCertificates(List.of());
+            }
         }
     }
 
     private GiftCertificateNestedDto buildGiftCertificateNestedDto(Map<String, Object> rowMap){
+        if(rowMap.get("gift_certificate_id")==null)return null;
         var result = new GiftCertificateNestedDto();
         result.setId(Long.parseLong(String.valueOf(rowMap.get("gift_certificate_id"))));
         result.setName(String.valueOf(rowMap.get("gift_certificate_name")));
