@@ -76,8 +76,11 @@ public class GiftCertificateRowMapper implements RowMapper<GiftCertificateMainDt
                 if(resultTagMap.get(tmpCert.getId())!=null){
                     resultTagMap.get(tmpCert.getId()).add(buildTagNestedDto(rowMap));
                 }else{
-                    resultTagMap.put(tmpCert.getId(), new LinkedList<>(
-                            List.of(buildTagNestedDto(rowMap))));
+                    var tag = buildTagNestedDto(rowMap);
+                    if (tag != null) {
+                        resultTagMap.put(tmpCert.getId(), new LinkedList<>(
+                                List.of(tag)));
+                    }
                 }
             }else{
                 result.add(tmpCert);
@@ -92,12 +95,17 @@ public class GiftCertificateRowMapper implements RowMapper<GiftCertificateMainDt
 
     private void addTagNestedDtoToGiftCertificateMainDto(
             List<GiftCertificateMainDto> result, Map<Long, List<TagNestedDto>> resultTagMap){
-        for(var tag: result){
-            tag.setTags(resultTagMap.get(tag.getId()));
+        for(var gc: result){
+            if(resultTagMap.get(gc.getId())!=null) {
+                gc.setTags(resultTagMap.get(gc.getId()));
+            }else{
+                gc.setTags(List.of());
+            }
         }
     }
 
     private TagNestedDto buildTagNestedDto(Map<String, Object> rowMap){
+        if(rowMap.get("tag_id")==null)return null;
         var result = new TagNestedDto();
         result.setId(Long.parseLong(String.valueOf(rowMap.get("tag_id"))));
         result.setName(String.valueOf(rowMap.get("tag_name")));
