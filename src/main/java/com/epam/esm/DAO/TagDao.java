@@ -6,7 +6,6 @@ import com.epam.esm.util.mappers.TagRowMapper;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -58,8 +57,7 @@ public class TagDao implements TagDaoInterface {
             return Optional.empty();
         }
     }
-//    @Transactional
-    @Override //TODO: @Transactional
+    @Override
     public boolean deleteById(long id) {
         boolean part1 = jdbcTemplate.update(DELETE_BY_ID_QUERY_PART1, id)!=0;
         boolean part2 = jdbcTemplate.update(DELETE_BY_ID_QUERY_PART2, id)!=0;
