@@ -1,11 +1,14 @@
 package com.epam.esm.models;
 
+import com.epam.esm.models.interfaces.GiftCertificateInterface;
+import com.epam.esm.models.interfaces.TagInterface;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
-public class GiftCertificate {
+public class GiftCertificate implements GiftCertificateInterface {
     private long id;
     private String name;
     private String description;
@@ -13,7 +16,7 @@ public class GiftCertificate {
     private int duration;
     private LocalDateTime createDate;
     private LocalDateTime lastUpdateDate;
-    private List<Tag> tags;
+    private List<TagInterface> tags;
 
     public long getId() {
         return id;
@@ -71,11 +74,11 @@ public class GiftCertificate {
         this.lastUpdateDate = lastUpdateDate;
     }
 
-    public List<Tag> getTags() {
+    public List<TagInterface> getTags() {
         return tags;
     }
 
-    public void setTags(List<Tag> tags) {
+    public void setTags(List<TagInterface> tags) {
         this.tags = tags;
     }
 
