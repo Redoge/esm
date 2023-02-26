@@ -5,6 +5,7 @@ import com.epam.esm.dto.GiftCertificateNestedDto;
 import com.epam.esm.dto.TagMainDto;
 import com.epam.esm.dto.TagNestedDto;
 import com.epam.esm.models.Tag;
+import com.epam.esm.models.interfaces.TagInterface;
 import com.epam.esm.util.formatters.TimeFormatter;
 import com.epam.esm.util.mappers.interfaces.ToListRowMapperInterface;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -38,12 +39,14 @@ public class GiftCertificateRowMapper implements RowMapper<GiftCertificateMainDt
         giftCertificate.setDuration(rs.getInt("gift_certificate_duration"));
         giftCertificate.setCreateDate(timeFormatter.timeToIso8601(rs.getObject("gift_certificate_create_date", LocalDateTime.class)));
         giftCertificate.setLastUpdateDate(timeFormatter.timeToIso8601(rs.getObject("gift_certificate_last_update_date", LocalDateTime.class)));
-        List<TagNestedDto> tags = new ArrayList<>();
+        List<TagInterface> tags = new ArrayList<>();
         do {
-            TagNestedDto tag = new TagNestedDto();
-            tag.setId(rs.getLong("tag_id"));
-            tag.setName(rs.getString("tag_name"));
-            tags.add(tag);
+            if(rs.getLong("tag_id")!=0) {
+                TagNestedDto tag = new TagNestedDto();
+                tag.setId(rs.getLong("tag_id"));
+                tag.setName(rs.getString("tag_name"));
+                tags.add(tag);
+            }
         } while (rs.next() && giftCertificate.getId() == rs.getLong("gift_certificate_id"));
         giftCertificate.setTags(tags);
         return giftCertificate;
@@ -55,7 +58,7 @@ public class GiftCertificateRowMapper implements RowMapper<GiftCertificateMainDt
         if(rows == null || rows.size()==0) return List.of();
         rows.sort(Comparator.comparing(k->Long.parseLong(String.valueOf(k.get("gift_certificate_id")))));
         List<GiftCertificateMainDto> result = new ArrayList<>();
-        Map<Long, List<TagNestedDto>> resultTagMap = new HashMap<>();
+        Map<Long, List<TagInterface>> resultTagMap = new HashMap<>();
         GiftCertificateMainDto tmpCert = null;
         for(int i = 0; i < rows.size(); i++) {
             Map<String, Object> rowMap = rows.get(i);
@@ -94,7 +97,7 @@ public class GiftCertificateRowMapper implements RowMapper<GiftCertificateMainDt
     }
 
     private void addTagNestedDtoToGiftCertificateMainDto(
-            List<GiftCertificateMainDto> result, Map<Long, List<TagNestedDto>> resultTagMap){
+            List<GiftCertificateMainDto> result, Map<Long, List<TagInterface>> resultTagMap){
         for(var gc: result){
             if(resultTagMap.get(gc.getId())!=null) {
                 gc.setTags(resultTagMap.get(gc.getId()));
