@@ -1,12 +1,13 @@
 package com.epam.esm.dto;
 
-import com.epam.esm.models.Tag;
+
+import com.epam.esm.models.interfaces.GiftCertificateInterface;
+import com.epam.esm.models.interfaces.TagInterface;
 
 import java.math.BigDecimal;
-import java.util.Date;
 import java.util.List;
 
-public class GiftCertificateMainDto {
+public class GiftCertificateMainDto implements GiftCertificateInterface {
     private long id;
     private String name;
     private String description;
@@ -14,7 +15,7 @@ public class GiftCertificateMainDto {
     private int duration;
     private String createDate;
     private String lastUpdateDate;
-    private List<TagNestedDto> tags;
+    private List<TagInterface> tags;
 
     public long getId() {
         return id;
@@ -72,11 +73,11 @@ public class GiftCertificateMainDto {
         this.lastUpdateDate = lastUpdateDate;
     }
 
-    public List<TagNestedDto> getTags() {
+    public List<TagInterface> getTags() {
         return tags;
     }
 
-    public void setTags(List<TagNestedDto> tags) {
+    public void setTags(List<TagInterface> tags) {
         this.tags = tags;
     }
 

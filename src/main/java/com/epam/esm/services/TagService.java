@@ -3,14 +3,15 @@ package com.epam.esm.services;
 import com.epam.esm.DAO.TagDao;
 import com.epam.esm.dto.TagMainDto;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@Transactional
 public class TagService {
     private final TagDao tagDao;
-
     public TagService(TagDao tagDao) {
         this.tagDao = tagDao;
     }

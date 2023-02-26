@@ -28,10 +28,8 @@ public class GiftCertificateController {
     @GetMapping("/{id}")
     public ResponseEntity<?> getGiftCertificatesById(@PathVariable long id){
         var cert = giftCertificateService.getById(id);
-        if(cert.isPresent()){
-            return ResponseEntity.ok(cert.get());
-        }
-        return new ResponseEntity<>(new ResponseWrapper(404, String.format("Not Found! (id = %d)", id),4042),
+        return cert.isPresent()? ResponseEntity.ok(cert.get()):
+                new ResponseEntity<>(new ResponseWrapper(404, String.format("Not Found! (id = %d)", id),4042),
                 HttpStatusCode.valueOf(404));
     }
 

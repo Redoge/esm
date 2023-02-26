@@ -2,11 +2,13 @@ package com.epam.esm.config;
 
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;
 
 @Configuration
 @EnableWebMvc
+@EnableTransactionManagement
 @ComponentScan("com.epam.esm")
 public class WebAppInitializer extends AbstractAnnotationConfigDispatcherServletInitializer {
 

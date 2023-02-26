@@ -1,9 +1,11 @@
 package com.epam.esm.dto;
 
-import java.math.BigDecimal;
-import java.util.Date;
 
-public class GiftCertificateNestedDto {
+import com.epam.esm.models.interfaces.GiftCertificateInterface;
+
+import java.math.BigDecimal;
+
+public class GiftCertificateNestedDto implements GiftCertificateInterface {
     private long id;
     private String name;
     private String description;

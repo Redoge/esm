@@ -1,10 +1,11 @@
 package com.epam.esm.dto;
 
 import com.epam.esm.models.GiftCertificate;
+import com.epam.esm.models.interfaces.TagInterface;
 
 import java.util.List;
 
-public class TagMainDto {
+public class TagMainDto implements TagInterface {
     private long id;
     private String name;
     private List<GiftCertificateNestedDto> certificates;

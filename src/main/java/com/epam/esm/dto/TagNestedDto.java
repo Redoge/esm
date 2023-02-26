@@ -1,5 +1,8 @@
 package com.epam.esm.dto;
-public class TagNestedDto {
+
+import com.epam.esm.models.interfaces.TagInterface;
+
+public class TagNestedDto implements TagInterface {
     private long id;
     private String name;
 

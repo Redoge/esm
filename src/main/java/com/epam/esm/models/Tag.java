@@ -1,8 +1,10 @@
 package com.epam.esm.models;
 
+import com.epam.esm.models.interfaces.TagInterface;
+
 import java.util.List;
 
-public class Tag {
+public class Tag implements TagInterface {
     private long id;
     private String name;
     private List<GiftCertificate> certificates;

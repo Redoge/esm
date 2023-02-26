@@ -27,16 +27,14 @@ public class TagController {
     @GetMapping("/{id}")
     public ResponseEntity<?> getTagById(@PathVariable long id){
         var tag = tagService.getById(id);
-        if(tag.isPresent()){
-            return ResponseEntity.ok(tag.get());
-        }
-        return new ResponseEntity<>(new ResponseWrapper(404, String.format("Not Found! (id = %d)", id),4041),
+        return tag.isPresent() ? ResponseEntity.ok(tag.get()) :
+                new ResponseEntity<>(new ResponseWrapper(404, String.format("Not Found! (id = %d)", id),4041),
                 HttpStatusCode.valueOf(404));
     }
     @DeleteMapping("/{id}")
     public ResponseEntity<?> removeTagById(@PathVariable long id){
         boolean success = tagService.deleteById(id);
-        return success?ResponseEntity.ok(new ResponseWrapper(200, String.format("Removed successfully! (id = %d)", id), 2001)) :
+        return success ? ResponseEntity.ok(new ResponseWrapper(200, String.format("Removed successfully! (id = %d)", id), 2001)) :
                 new ResponseEntity<>(new ResponseWrapper(400, String.format("Deletion is not successful! (id = %d)", id), 4001),
                         HttpStatusCode.valueOf(400));
     }
@@ -53,6 +51,4 @@ public class TagController {
                 : new ResponseEntity<>(new ResponseWrapper(400, "Created is not successful!", 4002),
                 HttpStatusCode.valueOf(400));
     }
-
-
 }
