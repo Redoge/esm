@@ -2,24 +2,24 @@ package com.epam.esm.services;
 
 import com.epam.esm.DAO.GiftCertificateDao;
 import com.epam.esm.dto.GiftCertificateMainDto;
-import com.epam.esm.dto.GiftCertificateNestedDto;
 import com.epam.esm.models.GiftCertificate;
 import com.epam.esm.models.Tag;
 import com.epam.esm.pojo.GiftCertificateSaveRequestPojo;
 import com.epam.esm.pojo.GiftCertificateSearchRequestPojo;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class GiftCertificateService {
     private final GiftCertificateDao giftCertificateDao;
 
     public GiftCertificateService(GiftCertificateDao giftCertificateDao) {
         this.giftCertificateDao = giftCertificateDao;
     }
-
     public List<GiftCertificateMainDto> getAll(){
         return giftCertificateDao.findAll();
     }
@@ -29,9 +29,7 @@ public class GiftCertificateService {
     public Optional<GiftCertificateMainDto> getByName(String name){
         return giftCertificateDao.findByName(name);
     }
-
     public Set<GiftCertificateMainDto> getByPartNameOrDescriptionAndTagName(String nameOrDescription, String tagName){
-//        return giftCertificateDao.findByPartNameOrDescriptionAndTagName(nameOrDescription, tagName); //TODO: try to change query for will be work without stream
         return giftCertificateDao.findByPartNameOrDescription(nameOrDescription)
                 .stream()
                 .filter(c-> c.getTags().
@@ -60,10 +58,6 @@ public class GiftCertificateService {
         }
         return false;
     }
-
-
-
-
     public List<GiftCertificateMainDto> getByGiftCertificateSearchRequestPojo(GiftCertificateSearchRequestPojo req) {
         List<GiftCertificateMainDto> result;
         if ((req.getName() != null && req.getName().length() > 0) ||
@@ -98,8 +92,6 @@ public class GiftCertificateService {
         }
         return result;
     }
-
-
     private boolean correctCertificate(GiftCertificateSaveRequestPojo giftCertificate){
         return ((giftCertificate.getName()!=null && giftCertificate.getName().length()>0)
                 && (giftCertificate.getDescription()!=null && giftCertificate.getDescription().length()>0)
