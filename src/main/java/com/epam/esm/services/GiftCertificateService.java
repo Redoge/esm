@@ -30,19 +30,14 @@ public class GiftCertificateService {
         return giftCertificateDao.findByName(name);
     }
     public Set<GiftCertificateMainDto> getByPartNameOrDescriptionAndTagName(String nameOrDescription, String tagName){
-        return giftCertificateDao.findByPartNameOrDescription(nameOrDescription)
-                .stream()
-                .filter(c-> c.getTags().
-                        stream().
-                        anyMatch(tag -> tag.getName()
-                                .equalsIgnoreCase(tagName)))
-                .collect(Collectors.toSet());
+        return selectGiftCertificateByTagName(giftCertificateDao.findByPartNameOrDescription(nameOrDescription), tagName);
+
     }
     public Set<GiftCertificateMainDto> getByPartNameOrDescription(String nameOrDescription){
         return giftCertificateDao.findByPartNameOrDescription(nameOrDescription);
     }
     public Set<GiftCertificateMainDto> getByTagName(String tagName){
-        return giftCertificateDao.findByTagName(tagName);
+        return selectGiftCertificateByTagName(Set.copyOf(giftCertificateDao.findAll()), tagName);
     }
     public boolean deleteById(long id){
         return giftCertificateDao.deleteById(id);
@@ -113,5 +108,16 @@ public class GiftCertificateService {
                     }).collect(Collectors.toList()));
         }
         return giftCertificate;
+    }
+
+
+    private Set<GiftCertificateMainDto> selectGiftCertificateByTagName(Set<GiftCertificateMainDto> certs, String tagName){
+        if(certs==null || certs.isEmpty()) return Set.of();
+        return certs.stream()
+                .filter(c-> c.getTags().
+                        stream().
+                        anyMatch(tag -> tag.getName()
+                                .equalsIgnoreCase(tagName)))
+                .collect(Collectors.toSet());
     }
 }

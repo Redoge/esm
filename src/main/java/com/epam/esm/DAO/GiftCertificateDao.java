@@ -43,7 +43,7 @@ public class GiftCertificateDao implements GiftCertificateDaoInterface {
             "LEFT JOIN gift_certificate_tag gct ON gc.gift_certificate_id = gct.gift_certificate_id LEFT JOIN tag t " +
             "ON gct.tag_id = t.tag_id WHERE (gc.gift_certificate_name LIKE ? OR gc.gift_certificate_description LIKE ?);";
 
-    private static final String FIND_BY_TAG_NAME = "SELECT gc.* FROM gift_certificate gc " +
+    private static final String FIND_BY_TAG_NAME = "SELECT * FROM gift_certificate gc " +
             "INNER JOIN gift_certificate_tag gct ON gc.gift_certificate_id = gct.gift_certificate_id " +
             "INNER JOIN tag t ON gct.tag_id = t.tag_id WHERE t.tag_name = ? ;";
 
