@@ -97,9 +97,7 @@ public class GiftCertificate implements GiftCertificateInterface {
         if (duration != that.duration) return false;
         if (!name.equals(that.name)) return false;
         if (!Objects.equals(description, that.description)) return false;
-        if (!price.equals(that.price)) return false;
-        if (!createDate.equals(that.createDate)) return false;
-        return lastUpdateDate.equals(that.lastUpdateDate);
+        return  (!price.equals(that.price));
     }
 
     @Override

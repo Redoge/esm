@@ -9,6 +9,8 @@ import com.epam.esm.pojo.GiftCertificateSearchRequestPojo;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -54,6 +56,7 @@ public class GiftCertificateService {
         return false;
     }
     public List<GiftCertificateMainDto> getByGiftCertificateSearchRequestPojo(GiftCertificateSearchRequestPojo req) {
+        DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
         List<GiftCertificateMainDto> result;
         if ((req.getName() != null && req.getName().length() > 0) ||
                 (req.getDescription() != null && req.getDescription().length() > 0)){
@@ -79,10 +82,9 @@ public class GiftCertificateService {
             }
         }else if(req.getSortByTime() != null && req.getSortByTime().length()>0){
             String sortByName = req.getSortByTime();
-            if(sortByName.equalsIgnoreCase("ASC")){
-                result.sort(Comparator.comparing(GiftCertificateMainDto::getLastUpdateDate));
-            }else if((sortByName.equalsIgnoreCase("DESC"))) {
-                result.sort(Comparator.comparing(GiftCertificateMainDto::getLastUpdateDate).reversed());
+            result.sort(Comparator.comparing(x-> LocalDateTime.parse(x.getLastUpdateDate(), formatter)));
+            if((sortByName.equalsIgnoreCase("DESC"))) {
+                Collections.reverse(result);
             }
         }
         return result;

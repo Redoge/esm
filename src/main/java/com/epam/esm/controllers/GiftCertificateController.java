@@ -1,8 +1,6 @@
 package com.epam.esm.controllers;
 
 import com.epam.esm.dto.GiftCertificateMainDto;
-import com.epam.esm.dto.GiftCertificateNestedDto;
-import com.epam.esm.models.GiftCertificate;
 import com.epam.esm.pojo.GiftCertificateSaveRequestPojo;
 import com.epam.esm.services.GiftCertificateService;
 import com.epam.esm.util.ResponseWrapper;
