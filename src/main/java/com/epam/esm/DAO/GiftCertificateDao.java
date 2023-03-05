@@ -3,6 +3,7 @@ package com.epam.esm.DAO;
 import com.epam.esm.DAO.interfaces.GiftCertificateDaoInterface;
 import com.epam.esm.models.GiftCertificate;
 import com.epam.esm.models.interfaces.TagInterface;
+import com.epam.esm.util.filters.TagFilter;
 import com.epam.esm.util.mappers.rowMappers.GiftCertificateRowMapper;
 import io.micrometer.common.util.StringUtils;
 import org.springframework.dao.DataAccessException;
@@ -58,11 +59,13 @@ public class GiftCertificateDao implements GiftCertificateDaoInterface {
     private final JdbcTemplate jdbcTemplate;
     private final GiftCertificateRowMapper giftCertificateRowMapper;
     private final TagDao tagDao;
+    private final TagFilter tagFilter;
 
-    public GiftCertificateDao(JdbcTemplate jdbcTemplate, GiftCertificateRowMapper giftCertificateRowMapper, TagDao tagDao) {
+    public GiftCertificateDao(JdbcTemplate jdbcTemplate, GiftCertificateRowMapper giftCertificateRowMapper, TagDao tagDao, TagFilter tagFilter) {
         this.jdbcTemplate = jdbcTemplate;
         this.giftCertificateRowMapper = giftCertificateRowMapper;
         this.tagDao = tagDao;
+        this.tagFilter = tagFilter;
     }
 
     @Override
@@ -110,7 +113,7 @@ public class GiftCertificateDao implements GiftCertificateDaoInterface {
         GiftCertificate oldGc = findById(gcId).orElse(null);
         //if id <= 0 -> bad request
         if (oldGc == null || gcId <= 0) return false;
-        boolean correct = updateOnlyNewGiftCertificate(oldGc, gCert, gcId);
+        boolean correct = updateOnlyNewFieldsGiftCertificate(oldGc, gCert, gcId);
         if (!correct) return false;
         //If the tags have not received (is null) anything to do
         if(gCert.getTags()==null) return true;
@@ -118,8 +121,8 @@ public class GiftCertificateDao implements GiftCertificateDaoInterface {
         List<TagInterface> newTags = gCert.getTags();
         if (oldTags.equals(newTags) && StringUtils.isNotEmpty(oldTags.get(0).getName()))
             return false;
-        removeOldTagFromCertificate(getTagsThatNeedToRemove(oldTags, newTags), gcId);
-        addNewTagToCertificate(getTagsThatNeedToAdd(oldTags, newTags), gcId);
+        removeOldTagFromCertificate(tagFilter.filterTagsThatNeedToRemoveFromCerts(oldTags, newTags), gcId);
+        addNewTagToCertificate(tagFilter.filterTagsThatNeedToAddToCerts(oldTags, newTags), gcId);
         return true;
     }
 
@@ -152,31 +155,12 @@ public class GiftCertificateDao implements GiftCertificateDaoInterface {
             }
         }
     }
-
     private void removeOldTagFromCertificate(List<TagInterface> tags, long certId) {
         for (var tag : tags) {
             tagDao.removeFromGiftCertificateByTagIdAndCertId(tagDao.findByName(tag.getName()).get().getId(), certId);
         }
     }
-
-    private List<TagInterface> getTagsThatNeedToRemove(List<TagInterface> oldTags, List<TagInterface> newTags) {
-        if (isNotEmpty(oldTags) || (oldTags.size() == 1 && oldTags.get(0).getName() != null)) {
-            return oldTags.stream()
-                    .filter(tag -> !newTags.contains(tag.getName()))
-                    .toList();
-        }
-        return List.of();
-    }
-
-    private List<TagInterface> getTagsThatNeedToAdd(List<TagInterface> oldTags, List<TagInterface> newTags) {
-        if (isNotEmpty(oldTags) || (oldTags.size() == 1 && oldTags.get(0).getName() != null)) {
-            return newTags.stream()
-                    .filter(tag -> !oldTags.contains(tag.getName()))
-                    .toList();
-        }
-        return newTags;
-    }
-    private boolean updateOnlyNewGiftCertificate(GiftCertificate oldGc, GiftCertificate newGc, long id){
+    private boolean updateOnlyNewFieldsGiftCertificate(GiftCertificate oldGc, GiftCertificate newGc, long id){
         boolean diffName = newGc.getName() != null && !newGc.getName().equals(oldGc.getName());
         boolean diffDescription = newGc.getDescription() != null && !newGc.getDescription().equals(oldGc.getDescription());
         boolean diffPrice = newGc.getPrice() != null && !newGc.getPrice().equals(oldGc.getPrice());
