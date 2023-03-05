@@ -61,7 +61,7 @@ public class TagRowMapper implements RowMapper<Tag>, ToListRowMapperInterface<Ta
             if (tmpTag == null) {
                 tmpTag = new Tag();
                 tmpTag.setId(Long.parseLong(String.valueOf(rowMap.get(TagFieldEnum.ID.getName()))));
-                tmpTag.setName(String.valueOf(rowMap.get(TagFieldEnum.ID.getName())));
+                tmpTag.setName(String.valueOf(rowMap.get(TagFieldEnum.NAME.getName())));
             }
             if (tmpTag.getId() == Long.parseLong(String.valueOf(rowMap.get(TagFieldEnum.ID.getName())))) {
                 if (resultCertificatesMap.get(tmpTag.getId()) != null) {
