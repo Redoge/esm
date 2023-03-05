@@ -1,11 +1,15 @@
 package com.epam.esm.services;
 
 import com.epam.esm.DAO.GiftCertificateDao;
+import com.epam.esm.DAO.interfaces.GiftCertificateDaoInterface;
 import com.epam.esm.dto.GiftCertificateMainDto;
 import com.epam.esm.models.GiftCertificate;
-import com.epam.esm.models.Tag;
 import com.epam.esm.pojo.GiftCertificateSaveRequestPojo;
 import com.epam.esm.pojo.GiftCertificateSearchRequestPojo;
+import com.epam.esm.services.interfaces.GiftCertificateServiceInterface;
+import com.epam.esm.util.filters.GiftCertificateFilter;
+import com.epam.esm.util.mappers.GiftCertificateMapper;
+import com.epam.esm.util.validators.GiftCertificateValidator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,112 +18,126 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+
 @Service
-@Transactional
-public class GiftCertificateService {
-    private final GiftCertificateDao giftCertificateDao;
+public class GiftCertificateService implements GiftCertificateServiceInterface {
+    private final GiftCertificateDaoInterface giftCertificateDao;
+    private final GiftCertificateMapper giftCertificateMapper;
+    private final GiftCertificateValidator giftCertificateValidator;
+    private final GiftCertificateFilter giftCertificateFilter;
 
-    public GiftCertificateService(GiftCertificateDao giftCertificateDao) {
+    public GiftCertificateService(GiftCertificateDaoInterface giftCertificateDao, GiftCertificateMapper giftCertificateMapper,
+                                  GiftCertificateValidator giftCertificateValidator, GiftCertificateFilter giftCertificateFilter) {
         this.giftCertificateDao = giftCertificateDao;
+        this.giftCertificateMapper = giftCertificateMapper;
+        this.giftCertificateValidator = giftCertificateValidator;
+        this.giftCertificateFilter = giftCertificateFilter;
     }
-    public List<GiftCertificateMainDto> getAll(){
-        return giftCertificateDao.findAll();
+
+    public List<GiftCertificateMainDto> getAll() {
+        return giftCertificateDao.findAll()
+                .stream()
+                .map(giftCertificateMapper::mapGiftCertToMainDto)
+                .toList();
     }
-    public Optional<GiftCertificateMainDto> getById(long id){
-        return giftCertificateDao.findById(id);
+
+    public Optional<GiftCertificateMainDto> getById(long id) {
+        return giftCertificateDao.findById(id)
+                .map(giftCertificateMapper::mapGiftCertToMainDto);
     }
-    public Optional<GiftCertificateMainDto> getByName(String name){
-        return giftCertificateDao.findByName(name);
+
+    public Optional<GiftCertificateMainDto> getByName(String name) {
+        return giftCertificateDao.findByName(name)
+                .map(giftCertificateMapper::mapGiftCertToMainDto);
     }
-    public Set<GiftCertificateMainDto> getByPartNameOrDescriptionAndTagName(String nameOrDescription, String tagName){
-        return selectGiftCertificateByTagName(giftCertificateDao.findByPartNameOrDescription(nameOrDescription), tagName);
+
+    public Set<GiftCertificateMainDto> getByPartNameOrDescriptionAndTagName(String nameOrDescription, String tagName) {
+        return giftCertificateFilter.filterGiftCertificateByTagName(giftCertificateDao.findByPartNameOrDescription(nameOrDescription), tagName)
+                .stream()
+                .map(giftCertificateMapper::mapGiftCertToMainDto)
+                .collect(Collectors.toSet());
 
     }
-    public Set<GiftCertificateMainDto> getByPartNameOrDescription(String nameOrDescription){
-        return giftCertificateDao.findByPartNameOrDescription(nameOrDescription);
+
+    public Set<GiftCertificateMainDto> getByPartNameOrDescription(String nameOrDescription) {
+        return giftCertificateDao.findByPartNameOrDescription(nameOrDescription)
+                .stream()
+                .map(giftCertificateMapper::mapGiftCertToMainDto)
+                .collect(Collectors.toSet());
     }
-    public Set<GiftCertificateMainDto> getByTagName(String tagName){
-        return selectGiftCertificateByTagName(Set.copyOf(giftCertificateDao.findAll()), tagName);
+
+    public Set<GiftCertificateMainDto> getByTagName(String tagName) {
+        return giftCertificateFilter.filterGiftCertificateByTagName(Set.copyOf(giftCertificateDao.findAll()), tagName)
+                .stream()
+                .map(giftCertificateMapper::mapGiftCertToMainDto)
+                .collect(Collectors.toSet());
     }
-    public boolean deleteById(long id){
+
+    @Transactional
+    public boolean deleteById(long id) {
         return giftCertificateDao.deleteById(id);
     }
-    public boolean update(GiftCertificateSaveRequestPojo giftCertificate, long id){
-        GiftCertificate gc = giftCertificateSaveRequestPojoToGiftCertificateTransfer(giftCertificate);
-        return giftCertificateDao.update(gc, id);
+
+    @Transactional
+    public boolean update(GiftCertificateSaveRequestPojo giftCertificate, long id) {
+        GiftCertificate gCert = giftCertificateMapper.mapCertificateSaveRequestPojoToGiftCertificateTransfer(giftCertificate);
+        return giftCertificateDao.update(gCert, id);
     }
-    public boolean save(GiftCertificateSaveRequestPojo giftCertificate){
-        if(correctCertificate(giftCertificate)){
-            GiftCertificate gc = giftCertificateSaveRequestPojoToGiftCertificateTransfer(giftCertificate);
-            return giftCertificateDao.save(gc);
+
+    @Transactional
+    public boolean save(GiftCertificateSaveRequestPojo giftCertificate) {
+        if (giftCertificateValidator.isValidCertificateRequestPojo(giftCertificate)) {
+            GiftCertificate gCert = giftCertificateMapper.mapCertificateSaveRequestPojoToGiftCertificateTransfer(giftCertificate);
+            return giftCertificateDao.save(gCert);
         }
         return false;
     }
+
+    @Transactional
     public List<GiftCertificateMainDto> getByGiftCertificateSearchRequestPojo(GiftCertificateSearchRequestPojo req) {
+        List<GiftCertificateMainDto> gCerts = findGiftCertificateMainDtoBySearchReq(req);
+        sortedGiftCertificateMainDtoBySearchReq(gCerts, req);
+        return gCerts;
+    }
+
+    private List<GiftCertificateMainDto> findGiftCertificateMainDtoBySearchReq(GiftCertificateSearchRequestPojo certsSearchReqPojo) {
+        List<GiftCertificateMainDto> gCerts;
+        if (isNotEmpty(certsSearchReqPojo.getName()) || (isNotEmpty(certsSearchReqPojo.getDescription()))) {
+            String nameOrDescriptionString = isNotEmpty(certsSearchReqPojo.getName()) ?
+                    certsSearchReqPojo.getName() :
+                    certsSearchReqPojo.getDescription();
+            if (isNotEmpty(certsSearchReqPojo.getTagName())) {
+                gCerts = List.copyOf(getByPartNameOrDescriptionAndTagName(nameOrDescriptionString,
+                        certsSearchReqPojo.getTagName()));
+            } else {
+                gCerts = List.copyOf(getByPartNameOrDescription(nameOrDescriptionString));
+            }
+        } else {
+            if (isNotEmpty(certsSearchReqPojo.getTagName())) {
+                gCerts = List.copyOf(getByTagName(certsSearchReqPojo.getTagName()));
+            } else {
+                gCerts = getAll();
+            }
+        }
+        return gCerts;
+    }
+
+    private void sortedGiftCertificateMainDtoBySearchReq(List<GiftCertificateMainDto> gCerts, GiftCertificateSearchRequestPojo certsSearchReqPojo) {
         DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
-        List<GiftCertificateMainDto> result;
-        if ((req.getName() != null && req.getName().length() > 0) ||
-                (req.getDescription() != null && req.getDescription().length() > 0)){
-            String nameOrDescriptionString = (req.getName() != null && req.getName().length() > 0)?req.getName():
-                    req.getDescription();
-            if(req.getTagName() != null && req.getTagName().length() > 0){
-                result = List.copyOf(getByPartNameOrDescriptionAndTagName(nameOrDescriptionString, req.getTagName()));
-            }else{
-                result = List.copyOf(getByPartNameOrDescription(nameOrDescriptionString));
+        if (isNotEmpty(certsSearchReqPojo.getSortByName())) {
+            String sortByName = certsSearchReqPojo.getSortByName();
+            if (sortByName.equalsIgnoreCase("ASC")) {
+                gCerts.sort(Comparator.comparing(GiftCertificateMainDto::getName));
+            } else if ((sortByName.equalsIgnoreCase("DESC"))) {
+                gCerts.sort(Comparator.comparing(GiftCertificateMainDto::getName).reversed());
             }
-        }else{
-            if(req.getTagName() != null && req.getTagName().length() > 0){
-                result = List.copyOf(getByTagName( req.getTagName()));
-            }else{
-                result = getAll();
-            }
-        }if(req.getSortByName() != null && req.getSortByName().length()>0){
-            String sortByName = req.getSortByName();
-            if(sortByName.equalsIgnoreCase("ASC")){
-                result.sort(Comparator.comparing(GiftCertificateMainDto::getName));
-            }else if((sortByName.equalsIgnoreCase("DESC"))) {
-                result.sort(Comparator.comparing(GiftCertificateMainDto::getName).reversed());
-            }
-        }else if(req.getSortByTime() != null && req.getSortByTime().length()>0){
-            String sortByName = req.getSortByTime();
-            result.sort(Comparator.comparing(x-> LocalDateTime.parse(x.getLastUpdateDate(), formatter)));
-            if((sortByName.equalsIgnoreCase("DESC"))) {
-                Collections.reverse(result);
+        } else if (isNotEmpty(certsSearchReqPojo.getSortByTime())) {
+            String sortByName = certsSearchReqPojo.getSortByTime();
+            gCerts.sort(Comparator.comparing(x -> LocalDateTime.parse(x.getLastUpdateDate(), formatter)));
+            if ((sortByName.equalsIgnoreCase("DESC"))) {
+                Collections.reverse(gCerts);
             }
         }
-        return result;
-    }
-    private boolean correctCertificate(GiftCertificateSaveRequestPojo giftCertificate){
-        return ((giftCertificate.getName()!=null && giftCertificate.getName().length()>0)
-                && (giftCertificate.getDescription()!=null && giftCertificate.getDescription().length()>0)
-                && (giftCertificate.getPrice()!=null&&giftCertificate.getPrice().intValue()>=0)
-                && (giftCertificate.getDuration()>=0));
-    }
-    private GiftCertificate giftCertificateSaveRequestPojoToGiftCertificateTransfer(GiftCertificateSaveRequestPojo giftCertificatePojo) {
-        GiftCertificate giftCertificate = new GiftCertificate();
-        giftCertificate.setName(giftCertificatePojo.getName());
-        giftCertificate.setDescription(giftCertificatePojo.getDescription());
-        giftCertificate.setDuration(giftCertificatePojo.getDuration());
-        giftCertificate.setPrice(giftCertificatePojo.getPrice());
-        if(giftCertificatePojo.getTags()!=null) {
-            giftCertificate.setTags(
-                    giftCertificatePojo.getTags().stream().map(o -> {
-                        Tag tag = new Tag();
-                        tag.setName(o);
-                        return tag;
-                    }).collect(Collectors.toList()));
-        }
-        return giftCertificate;
-    }
-
-
-    private Set<GiftCertificateMainDto> selectGiftCertificateByTagName(Set<GiftCertificateMainDto> certs, String tagName){
-        if(certs==null || certs.isEmpty()) return Set.of();
-        return certs.stream()
-                .filter(c-> c.getTags().
-                        stream().
-                        anyMatch(tag -> tag.getName()
-                                .equalsIgnoreCase(tagName)))
-                .collect(Collectors.toSet());
     }
 }

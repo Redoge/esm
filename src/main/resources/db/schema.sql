@@ -18,7 +18,6 @@ CREATE TABLE tag (
 CREATE TABLE gift_certificate_tag (
     gift_certificate_id BIGINT UNSIGNED NOT NULL,
     tag_id BIGINT UNSIGNED NOT NULL,
-    PRIMARY KEY (gift_certificate_id, tag_id),
-    FOREIGN KEY (gift_certificate_id) REFERENCES gift_certificate(gift_certificate_id),
-    FOREIGN KEY (tag_id) REFERENCES tag(tag_id)
+    FOREIGN KEY (gift_certificate_id) REFERENCES gift_certificate(gift_certificate_id) ON DELETE CASCADE,
+    FOREIGN KEY (tag_id) REFERENCES tag(tag_id) ON DELETE CASCADE
 );

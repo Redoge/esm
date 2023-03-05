@@ -18,6 +18,12 @@ public class TagMainDto implements TagInterface {
         this.name = name;
     }
 
+    public TagMainDto(long id, String name, List<GiftCertificateNestedDto> certificates) {
+        this.id = id;
+        this.name = name;
+        this.certificates = certificates;
+    }
+
     public long getId() {
         return id;
     }

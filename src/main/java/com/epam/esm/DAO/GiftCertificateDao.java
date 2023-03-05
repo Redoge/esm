@@ -1,37 +1,43 @@
 package com.epam.esm.DAO;
 
 import com.epam.esm.DAO.interfaces.GiftCertificateDaoInterface;
-import com.epam.esm.dto.GiftCertificateMainDto;
 import com.epam.esm.models.GiftCertificate;
 import com.epam.esm.models.interfaces.TagInterface;
-import com.epam.esm.util.mappers.GiftCertificateRowMapper;
+import com.epam.esm.util.filters.TagFilter;
+import com.epam.esm.util.mappers.rowMappers.GiftCertificateRowMapper;
+import io.micrometer.common.util.StringUtils;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+
 @Repository
 public class GiftCertificateDao implements GiftCertificateDaoInterface {
-    private static final String FIND_ALL_QUERY = "SELECT * FROM gift_certificate LEFT JOIN gift_certificate_tag ON " +
-            "gift_certificate.gift_certificate_id = gift_certificate_tag.gift_certificate_id LEFT JOIN tag " +
-            "ON gift_certificate_tag.tag_id = tag.tag_id;";
-    private static final String FIND_BY_ID_QUERY = "SELECT * FROM gift_certificate LEFT JOIN gift_certificate_tag ON " +
-            "gift_certificate.gift_certificate_id = gift_certificate_tag.gift_certificate_id LEFT JOIN tag ON " +
-            "gift_certificate_tag.tag_id = tag.tag_id WHERE gift_certificate.`gift_certificate_id` = ?;";
-    private static final String FIND_BY_NAME_QUERY = "SELECT * FROM gift_certificate LEFT JOIN gift_certificate_tag ON " +
-            "gift_certificate.gift_certificate_id = gift_certificate_tag.gift_certificate_id LEFT JOIN tag ON " +
-            "gift_certificate_tag.tag_id = tag.tag_id WHERE gift_certificate.`gift_certificate_name` = ?;";
+    private static final String FIND_ALL_QUERY = "SELECT * FROM gift_certificate " +
+            "LEFT JOIN gift_certificate_tag " +
+            "ON gift_certificate.gift_certificate_id = gift_certificate_tag.gift_certificate_id " +
+            "LEFT JOIN tag ON gift_certificate_tag.tag_id = tag.tag_id;";
+    private static final String FIND_BY_ID_QUERY = "SELECT * FROM gift_certificate " +
+            "LEFT JOIN gift_certificate_tag ON gift_certificate.gift_certificate_id = gift_certificate_tag.gift_certificate_id " +
+            "LEFT JOIN tag ON gift_certificate_tag.tag_id = tag.tag_id WHERE gift_certificate.`gift_certificate_id` = ?;";
+    private static final String FIND_BY_NAME_QUERY = "SELECT * FROM gift_certificate " +
+            "LEFT JOIN gift_certificate_tag ON gift_certificate.gift_certificate_id = gift_certificate_tag.gift_certificate_id " +
+            "LEFT JOIN tag ON gift_certificate_tag.tag_id = tag.tag_id WHERE gift_certificate.`gift_certificate_name` = ?;";
 
-    private static final String DELETE_BY_ID_QUERY_PART_1 = "DELETE FROM gift_certificate_tag WHERE gift_certificate_id = ?;";
-    private static final String DELETE_BY_ID_QUERY_PART_2 = "DELETE FROM gift_certificate WHERE gift_certificate_id = ?;";
+    private static final String DELETE_BY_ID_QUERY = "DELETE FROM gift_certificate WHERE gift_certificate_id = ?;";
 
     private static final String SAVE_QUERY = "INSERT INTO gift_certificate (gift_certificate_name, " +
             "gift_certificate_description, gift_certificate_price, gift_certificate_duration, " +
-            "gift_certificate_create_date, gift_certificate_last_update_date) SELECT ?, ?, ?, ?, ?, ? " +
-            "FROM dual WHERE NOT EXISTS (SELECT * FROM gift_certificate WHERE gift_certificate_name = ?)";
+            "gift_certificate_create_date, gift_certificate_last_update_date) " +
+            "SELECT ?, ?, ?, ?, ?, ? FROM dual WHERE NOT EXISTS " +
+            "(SELECT * FROM gift_certificate WHERE gift_certificate_name = ?)";
 
     private static final String FIND_BY_PART_NAME_OR_DESCRIPTION_AND_TAG_NAME =
             "SELECT *  FROM gift_certificate gc  LEFT JOIN gift_certificate_tag gct " +
@@ -53,98 +59,90 @@ public class GiftCertificateDao implements GiftCertificateDaoInterface {
     private final JdbcTemplate jdbcTemplate;
     private final GiftCertificateRowMapper giftCertificateRowMapper;
     private final TagDao tagDao;
+    private final TagFilter tagFilter;
 
-    public GiftCertificateDao(JdbcTemplate jdbcTemplate, GiftCertificateRowMapper giftCertificateRowMapper, TagDao tagDao) {
+    public GiftCertificateDao(JdbcTemplate jdbcTemplate, GiftCertificateRowMapper giftCertificateRowMapper, TagDao tagDao, TagFilter tagFilter) {
         this.jdbcTemplate = jdbcTemplate;
         this.giftCertificateRowMapper = giftCertificateRowMapper;
         this.tagDao = tagDao;
+        this.tagFilter = tagFilter;
     }
+
     @Override
-    public List<GiftCertificateMainDto> findAll() {
+    public List<GiftCertificate> findAll() {
         return giftCertificateRowMapper.mapRowToList(jdbcTemplate.queryForList(FIND_ALL_QUERY));
     }
+
     @Override
-    public Optional<GiftCertificateMainDto> findById(long id) {
+    public Optional<GiftCertificate> findById(long id) {
         try {
             return Optional.ofNullable(jdbcTemplate.queryForObject(FIND_BY_ID_QUERY, giftCertificateRowMapper, id));
         } catch (EmptyResultDataAccessException e) {
             return Optional.empty();
         }
     }
+
     @Override
-    public Optional<GiftCertificateMainDto> findByName(String name) {
-        var certificates = giftCertificateRowMapper.mapRowToList(jdbcTemplate.queryForList(FIND_BY_NAME_QUERY, name));
-        if (certificates.size() > 0) {
-            return Optional.ofNullable(certificates.get(0));
-        } else {
+    public Optional<GiftCertificate> findByName(String name) {
+        try {
+            return Optional.ofNullable(jdbcTemplate.queryForObject(FIND_BY_NAME_QUERY, giftCertificateRowMapper, name));
+        } catch (EmptyResultDataAccessException e) {
             return Optional.empty();
         }
     }
+
     @Override
-    public Set<GiftCertificateMainDto> findByPartNameOrDescriptionAndTagName(String nameOrDescription, String tagName) {
+    public Set<GiftCertificate> findByPartNameOrDescriptionAndTagName(String nameOrDescription, String tagName) {
         return Set.copyOf(giftCertificateRowMapper.mapRowToList(jdbcTemplate.queryForList(FIND_BY_PART_NAME_OR_DESCRIPTION_AND_TAG_NAME,
                 "%" + nameOrDescription + "%", "%" + nameOrDescription + "%", tagName)));
     }
+
     @Override
-    public Set<GiftCertificateMainDto> findByPartNameOrDescription(String nameOrDescription) {
+    public Set<GiftCertificate> findByPartNameOrDescription(String nameOrDescription) {
         return Set.copyOf(giftCertificateRowMapper.mapRowToList(jdbcTemplate.queryForList(FIND_BY_PART_NAME_OR_DESCRIPTION,
                 "%" + nameOrDescription + "%", "%" + nameOrDescription + "%")));
     }
+
     @Override
-    public Set<GiftCertificateMainDto> findByTagName(String tagName) {
+    public Set<GiftCertificate> findByTagName(String tagName) {
         return Set.copyOf(giftCertificateRowMapper.mapRowToList(jdbcTemplate.queryForList(FIND_BY_TAG_NAME, tagName)));
     }
+
     @Override
-    public boolean update(GiftCertificate gc, long gcId) {
-        GiftCertificateMainDto oldGc = findById(gcId).orElse(null);
-        if (oldGc == null || gcId == 0) return false;
-        boolean diffName = gc.getName() != null && !gc.getName().equals(oldGc.getName());
-        boolean diffDescription = gc.getDescription() != null && !gc.getDescription().equals(oldGc.getDescription());
-        boolean diffPrice = gc.getPrice() != null && !gc.getPrice().equals(oldGc.getPrice());
-        boolean diffDuration = gc.getDuration() != 0 && !(gc.getDuration() == oldGc.getDuration());
-        boolean needToUpdate = (diffName || diffDescription || diffPrice || diffDuration);
-        if (needToUpdate) {
-            jdbcTemplate.update(UPDATE_ONLY_GC_QUERY, diffName ? gc.getName() : oldGc.getName(),
-                    diffDescription ? gc.getDescription() : oldGc.getDescription(),
-                    diffPrice ? gc.getPrice() : oldGc.getPrice(),
-                    diffDuration ? gc.getDuration() : oldGc.getDuration(),
-                    LocalDateTime.now(),
-                    gcId);
-        }
-        //If the tags have not received anything to do
-        if (gc.getTags() == null) return needToUpdate;
+    public boolean update(GiftCertificate gCert, long gcId) {
+        GiftCertificate oldGc = findById(gcId).orElse(null);
+        //if id <= 0 -> bad request
+        if (oldGc == null || gcId <= 0) return false;
+        boolean correct = updateOnlyNewFieldsGiftCertificate(oldGc, gCert, gcId);
+        if (!correct) return false;
+        //If the tags have not received (is null) anything to do
+        if(gCert.getTags()==null) return true;
         List<TagInterface> oldTags = oldGc.getTags();
-        List<TagInterface> newTags = gc.getTags();
-        List<TagInterface> tagsThatNeedToRemove;
-        List<TagInterface> tagsThatNeedToAdd;
-        if ((!oldTags.isEmpty() && oldTags.size() > 1) || (oldTags.size() == 1 && oldTags.get(0).getName() != null)) {
-            if (oldTags.equals(newTags) && oldTags.get(0).getName() != null) return needToUpdate;
-            tagsThatNeedToRemove = oldTags.stream().filter(e -> !newTags.contains(e.getName())).toList();
-            tagsThatNeedToAdd = newTags.stream().filter(e -> !oldTags.contains(e.getName())).toList();
-        } else {
-            tagsThatNeedToRemove = List.of();
-            tagsThatNeedToAdd = newTags;
-        }
-        removeOldTagFromCertificate(tagsThatNeedToRemove, gcId);
-        addNewTagToCertificate(tagsThatNeedToAdd, gcId);
+        List<TagInterface> newTags = gCert.getTags();
+        if (oldTags.equals(newTags) && StringUtils.isNotEmpty(oldTags.get(0).getName()))
+            return false;
+        removeOldTagFromCertificate(tagFilter.filterTagsThatNeedToRemoveFromCerts(oldTags, newTags), gcId);
+        addNewTagToCertificate(tagFilter.filterTagsThatNeedToAddToCerts(oldTags, newTags), gcId);
         return true;
     }
+
+
     @Override
     public boolean deleteById(long id) {
-        boolean part1 = jdbcTemplate.update(DELETE_BY_ID_QUERY_PART_1, id) != 0;
-        boolean part2 = jdbcTemplate.update(DELETE_BY_ID_QUERY_PART_2, id) != 0;
-        return part1 || part2;
+        return jdbcTemplate.update(DELETE_BY_ID_QUERY, id) != 0;
     }
+
     @Override
-    public boolean save(GiftCertificate gc) {
-        boolean success = jdbcTemplate.update(SAVE_QUERY, gc.getName(), gc.getDescription(), gc.getPrice(), gc.getDuration(),
-                LocalDateTime.now(), LocalDateTime.now(), gc.getName()) == 1;
-        Optional<GiftCertificateMainDto> createdGc = findByName(gc.getName());
-        if (success && gc.getTags() != null && !gc.getTags().isEmpty() && createdGc.isPresent()) {
-            addNewTagToCertificate(gc.getTags(), createdGc.get().getId());
+    public boolean save(GiftCertificate gCert) {
+        boolean success = jdbcTemplate.update(SAVE_QUERY, gCert.getName(), gCert.getDescription(), gCert.getPrice(),
+                gCert.getDuration(), LocalDateTime.now(), LocalDateTime.now(), gCert.getName()) == 1;
+        Optional<GiftCertificate> createdGc = findByName(gCert.getName());
+        if (success && isNotEmpty(gCert.getTags()) && createdGc.isPresent()) {
+            addNewTagToCertificate(gCert.getTags(), createdGc.get().getId());
         }
         return success;
     }
+
     private void addNewTagToCertificate(List<TagInterface> tags, long certId) {
         for (var tag : tags) {
             var tmpTag = tagDao.findByName(tag.getName());
@@ -161,5 +159,25 @@ public class GiftCertificateDao implements GiftCertificateDaoInterface {
         for (var tag : tags) {
             tagDao.removeFromGiftCertificateByTagIdAndCertId(tagDao.findByName(tag.getName()).get().getId(), certId);
         }
+    }
+    private boolean updateOnlyNewFieldsGiftCertificate(GiftCertificate oldGc, GiftCertificate newGc, long id){
+        boolean diffName = newGc.getName() != null && !newGc.getName().equals(oldGc.getName());
+        boolean diffDescription = newGc.getDescription() != null && !newGc.getDescription().equals(oldGc.getDescription());
+        boolean diffPrice = newGc.getPrice() != null && !newGc.getPrice().equals(oldGc.getPrice());
+        boolean diffDuration = newGc.getDuration() != 0 && !(newGc.getDuration() == oldGc.getDuration());
+        boolean needToUpdate = (diffName || diffDescription || diffPrice || diffDuration);
+        if (needToUpdate) {
+            try{
+                jdbcTemplate.update(UPDATE_ONLY_GC_QUERY, diffName ? newGc.getName() : oldGc.getName(),
+                        diffDescription ? newGc.getDescription() : oldGc.getDescription(),
+                        diffPrice ? newGc.getPrice() : oldGc.getPrice(),
+                        diffDuration ? newGc.getDuration() : oldGc.getDuration(),
+                        LocalDateTime.now(),
+                        id);
+            }catch (DataAccessException e){
+                return false;
+            }
+        }
+        return true;
     }
 }

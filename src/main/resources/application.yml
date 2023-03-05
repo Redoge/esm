@@ -1,0 +1,4 @@
+db:
+  url: jdbc:mysql://localhost:3306/esm
+  username: test
+  password: RedogeTest_Password123
