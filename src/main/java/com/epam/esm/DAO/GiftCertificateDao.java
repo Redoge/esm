@@ -108,16 +108,12 @@ public class GiftCertificateDao implements GiftCertificateDaoInterface {
     @Override
     public boolean update(GiftCertificate gCert, long gcId) {
         GiftCertificate oldGc = findById(gcId).orElse(null);
-        if (oldGc == null || gcId == 0) return false;
-        try {
-            jdbcTemplate.update(UPDATE_ONLY_GC_QUERY, gCert.getName(), gCert.getDescription(), gCert.getPrice(),
-                    gCert.getDuration(), LocalDateTime.now(), gcId);
-        } catch (DataAccessException e) {
-            return false;
-        }
-        //If the tags have not received anything to do
-        if (gCert.getTags() == null)
-            return false;
+        //if id <= 0 -> bad request
+        if (oldGc == null || gcId <= 0) return false;
+        boolean correct = updateOnlyNewGiftCertificate(oldGc, gCert, gcId);
+        if (!correct) return false;
+        //If the tags have not received (is null) anything to do
+        if(gCert.getTags()==null) return true;
         List<TagInterface> oldTags = oldGc.getTags();
         List<TagInterface> newTags = gCert.getTags();
         if (oldTags.equals(newTags) && StringUtils.isNotEmpty(oldTags.get(0).getName()))
@@ -179,5 +175,25 @@ public class GiftCertificateDao implements GiftCertificateDaoInterface {
                     .toList();
         }
         return newTags;
+    }
+    private boolean updateOnlyNewGiftCertificate(GiftCertificate oldGc, GiftCertificate newGc, long id){
+        boolean diffName = newGc.getName() != null && !newGc.getName().equals(oldGc.getName());
+        boolean diffDescription = newGc.getDescription() != null && !newGc.getDescription().equals(oldGc.getDescription());
+        boolean diffPrice = newGc.getPrice() != null && !newGc.getPrice().equals(oldGc.getPrice());
+        boolean diffDuration = newGc.getDuration() != 0 && !(newGc.getDuration() == oldGc.getDuration());
+        boolean needToUpdate = (diffName || diffDescription || diffPrice || diffDuration);
+        if (needToUpdate) {
+            try{
+                jdbcTemplate.update(UPDATE_ONLY_GC_QUERY, diffName ? newGc.getName() : oldGc.getName(),
+                        diffDescription ? newGc.getDescription() : oldGc.getDescription(),
+                        diffPrice ? newGc.getPrice() : oldGc.getPrice(),
+                        diffDuration ? newGc.getDuration() : oldGc.getDuration(),
+                        LocalDateTime.now(),
+                        id);
+            }catch (DataAccessException e){
+                return false;
+            }
+        }
+        return true;
     }
 }
