@@ -9,14 +9,14 @@ import java.util.Optional;
 import java.util.Set;
 
 public interface GiftCertificateDaoInterface {
-    List<GiftCertificateMainDto> findAll();
-    Optional<GiftCertificateMainDto> findById(long id);
-    Set<GiftCertificateMainDto> findByPartNameOrDescriptionAndTagName(String nameOrDescription, String tagName);
-    Set<GiftCertificateMainDto> findByPartNameOrDescription(String nameOrDescription);
-    Set<GiftCertificateMainDto> findByTagName(String tagName);
+    List<GiftCertificate> findAll();
+    Optional<GiftCertificate> findById(long id);
+    Set<GiftCertificate> findByPartNameOrDescriptionAndTagName(String nameOrDescription, String tagName);
+    Set<GiftCertificate> findByPartNameOrDescription(String nameOrDescription);
+    Set<GiftCertificate> findByTagName(String tagName);
     boolean deleteById(long id);
     boolean update(GiftCertificate giftCertificate, long id);
     boolean save(GiftCertificate giftCertificate);
 
-    Optional<GiftCertificateMainDto> findByName(String name);
+    Optional<GiftCertificate> findByName(String name);
 }
