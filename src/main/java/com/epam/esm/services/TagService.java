@@ -1,6 +1,7 @@
 package com.epam.esm.services;
 
 import com.epam.esm.DAO.TagDao;
+import com.epam.esm.DAO.interfaces.TagDaoInterface;
 import com.epam.esm.dto.TagMainDto;
 import com.epam.esm.services.interfaces.TagServiceInterface;
 import com.epam.esm.util.mappers.TagMapper;
@@ -11,10 +12,10 @@ import java.util.Optional;
 
 @Service
 public class TagService implements TagServiceInterface {
-    private final TagDao tagDao;
+    private final TagDaoInterface tagDao;
     private final TagMapper mapper;
 
-    public TagService(TagDao tagDao, TagMapper mapper) {
+    public TagService(TagDaoInterface tagDao, TagMapper mapper) {
         this.tagDao = tagDao;
         this.mapper = mapper;
     }

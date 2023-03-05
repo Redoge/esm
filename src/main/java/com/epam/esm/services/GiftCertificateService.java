@@ -1,6 +1,7 @@
 package com.epam.esm.services;
 
 import com.epam.esm.DAO.GiftCertificateDao;
+import com.epam.esm.DAO.interfaces.GiftCertificateDaoInterface;
 import com.epam.esm.dto.GiftCertificateMainDto;
 import com.epam.esm.models.GiftCertificate;
 import com.epam.esm.pojo.GiftCertificateSaveRequestPojo;
@@ -21,12 +22,12 @@ import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 @Service
 public class GiftCertificateService implements GiftCertificateServiceInterface {
-    private final GiftCertificateDao giftCertificateDao;
+    private final GiftCertificateDaoInterface giftCertificateDao;
     private final GiftCertificateMapper giftCertificateMapper;
     private final GiftCertificateValidator giftCertificateValidator;
     private final GiftCertificateFilter giftCertificateFilter;
 
-    public GiftCertificateService(GiftCertificateDao giftCertificateDao, GiftCertificateMapper giftCertificateMapper,
+    public GiftCertificateService(GiftCertificateDaoInterface giftCertificateDao, GiftCertificateMapper giftCertificateMapper,
                                   GiftCertificateValidator giftCertificateValidator, GiftCertificateFilter giftCertificateFilter) {
         this.giftCertificateDao = giftCertificateDao;
         this.giftCertificateMapper = giftCertificateMapper;
