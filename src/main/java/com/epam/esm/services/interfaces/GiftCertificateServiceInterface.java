@@ -15,11 +15,11 @@ public interface GiftCertificateServiceInterface {
 
     Optional<GiftCertificateMainDto> getByName(String name);
 
-    Set<GiftCertificateMainDto> getByPartNameOrDescriptionAndTagName(String nameOrDescription, String tagName);
+    List<GiftCertificateMainDto> getByPartNameOrDescriptionAndTagName(String nameOrDescription, String tagName);
 
-    Set<GiftCertificateMainDto> getByPartNameOrDescription(String nameOrDescription);
+    List<GiftCertificateMainDto> getByPartNameOrDescription(String nameOrDescription);
 
-    Set<GiftCertificateMainDto> getByTagName(String tagName);
+    List<GiftCertificateMainDto> getByTagName(String tagName);
 
     boolean deleteById(long id);
 

@@ -18,6 +18,20 @@ public class GiftCertificate implements GiftCertificateInterface {
     private LocalDateTime lastUpdateDate;
     private List<TagInterface> tags;
 
+    public GiftCertificate() {
+    }
+
+    public GiftCertificate(long id, String name, String description, BigDecimal price, int duration, LocalDateTime createDate, LocalDateTime lastUpdateDate, List<TagInterface> tags) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.price = price;
+        this.duration = duration;
+        this.createDate = createDate;
+        this.lastUpdateDate = lastUpdateDate;
+        this.tags = tags;
+    }
+
     public long getId() {
         return id;
     }
@@ -97,7 +111,7 @@ public class GiftCertificate implements GiftCertificateInterface {
         if (duration != that.duration) return false;
         if (!name.equals(that.name)) return false;
         if (!Objects.equals(description, that.description)) return false;
-        return  (!price.equals(that.price));
+        return (!price.equals(that.price));
     }
 
     @Override

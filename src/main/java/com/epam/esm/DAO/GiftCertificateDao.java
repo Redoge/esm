@@ -14,7 +14,6 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
@@ -92,20 +91,20 @@ public class GiftCertificateDao implements GiftCertificateDaoInterface {
     }
 
     @Override
-    public Set<GiftCertificate> findByPartNameOrDescriptionAndTagName(String nameOrDescription, String tagName) {
-        return Set.copyOf(giftCertificateRowMapper.mapRowToList(jdbcTemplate.queryForList(FIND_BY_PART_NAME_OR_DESCRIPTION_AND_TAG_NAME,
+    public List<GiftCertificate> findByPartNameOrDescriptionAndTagName(String nameOrDescription, String tagName) {
+        return List.copyOf(giftCertificateRowMapper.mapRowToList(jdbcTemplate.queryForList(FIND_BY_PART_NAME_OR_DESCRIPTION_AND_TAG_NAME,
                 "%" + nameOrDescription + "%", "%" + nameOrDescription + "%", tagName)));
     }
 
     @Override
-    public Set<GiftCertificate> findByPartNameOrDescription(String nameOrDescription) {
-        return Set.copyOf(giftCertificateRowMapper.mapRowToList(jdbcTemplate.queryForList(FIND_BY_PART_NAME_OR_DESCRIPTION,
+    public List<GiftCertificate> findByPartNameOrDescription(String nameOrDescription) {
+        return List.copyOf(giftCertificateRowMapper.mapRowToList(jdbcTemplate.queryForList(FIND_BY_PART_NAME_OR_DESCRIPTION,
                 "%" + nameOrDescription + "%", "%" + nameOrDescription + "%")));
     }
 
     @Override
-    public Set<GiftCertificate> findByTagName(String tagName) {
-        return Set.copyOf(giftCertificateRowMapper.mapRowToList(jdbcTemplate.queryForList(FIND_BY_TAG_NAME, tagName)));
+    public List<GiftCertificate> findByTagName(String tagName) {
+        return List.copyOf(giftCertificateRowMapper.mapRowToList(jdbcTemplate.queryForList(FIND_BY_TAG_NAME, tagName)));
     }
 
     @Override
