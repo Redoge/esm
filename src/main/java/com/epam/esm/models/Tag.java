@@ -17,6 +17,11 @@ public class Tag implements TagInterface {
         this.name = name;
     }
 
+    public Tag(long id, String name, List<GiftCertificate> certificates) {
+        this.id = id;
+        this.name = name;
+        this.certificates = certificates;
+    }
 
     public long getId() {
         return id;

@@ -1,6 +1,5 @@
 package com.epam.esm.services;
 
-import com.epam.esm.DAO.GiftCertificateDao;
 import com.epam.esm.DAO.interfaces.GiftCertificateDaoInterface;
 import com.epam.esm.dto.GiftCertificateMainDto;
 import com.epam.esm.models.GiftCertificate;
@@ -16,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
@@ -52,26 +50,26 @@ public class GiftCertificateService implements GiftCertificateServiceInterface {
                 .map(giftCertificateMapper::mapGiftCertToMainDto);
     }
 
-    public Set<GiftCertificateMainDto> getByPartNameOrDescriptionAndTagName(String nameOrDescription, String tagName) {
+    public List<GiftCertificateMainDto> getByPartNameOrDescriptionAndTagName(String nameOrDescription, String tagName) {
         return giftCertificateFilter.filterGiftCertificateByTagName(giftCertificateDao.findByPartNameOrDescription(nameOrDescription), tagName)
                 .stream()
                 .map(giftCertificateMapper::mapGiftCertToMainDto)
-                .collect(Collectors.toSet());
+                .toList();
 
     }
 
-    public Set<GiftCertificateMainDto> getByPartNameOrDescription(String nameOrDescription) {
+    public List<GiftCertificateMainDto> getByPartNameOrDescription(String nameOrDescription) {
         return giftCertificateDao.findByPartNameOrDescription(nameOrDescription)
                 .stream()
                 .map(giftCertificateMapper::mapGiftCertToMainDto)
-                .collect(Collectors.toSet());
+                .toList();
     }
 
-    public Set<GiftCertificateMainDto> getByTagName(String tagName) {
-        return giftCertificateFilter.filterGiftCertificateByTagName(Set.copyOf(giftCertificateDao.findAll()), tagName)
+    public List<GiftCertificateMainDto> getByTagName(String tagName) {
+        return giftCertificateFilter.filterGiftCertificateByTagName(List.copyOf(giftCertificateDao.findAll()), tagName)
                 .stream()
                 .map(giftCertificateMapper::mapGiftCertToMainDto)
-                .collect(Collectors.toSet());
+                .toList();
     }
 
     @Transactional
@@ -97,8 +95,7 @@ public class GiftCertificateService implements GiftCertificateServiceInterface {
     @Transactional
     public List<GiftCertificateMainDto> getByGiftCertificateSearchRequestPojo(GiftCertificateSearchRequestPojo req) {
         List<GiftCertificateMainDto> gCerts = findGiftCertificateMainDtoBySearchReq(req);
-        sortedGiftCertificateMainDtoBySearchReq(gCerts, req);
-        return gCerts;
+        return sortedGiftCertificateMainDtoBySearchReq(gCerts, req);
     }
 
     private List<GiftCertificateMainDto> findGiftCertificateMainDtoBySearchReq(GiftCertificateSearchRequestPojo certsSearchReqPojo) {
@@ -123,8 +120,9 @@ public class GiftCertificateService implements GiftCertificateServiceInterface {
         return gCerts;
     }
 
-    private void sortedGiftCertificateMainDtoBySearchReq(List<GiftCertificateMainDto> gCerts, GiftCertificateSearchRequestPojo certsSearchReqPojo) {
+    private List<GiftCertificateMainDto> sortedGiftCertificateMainDtoBySearchReq(List<GiftCertificateMainDto> gCerts, GiftCertificateSearchRequestPojo certsSearchReqPojo) {
         DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+        gCerts = new ArrayList<>(gCerts);
         if (isNotEmpty(certsSearchReqPojo.getSortByName())) {
             String sortByName = certsSearchReqPojo.getSortByName();
             if (sortByName.equalsIgnoreCase("ASC")) {
@@ -139,5 +137,6 @@ public class GiftCertificateService implements GiftCertificateServiceInterface {
                 Collections.reverse(gCerts);
             }
         }
+        return gCerts;
     }
 }
