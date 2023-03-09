@@ -1,6 +1,6 @@
 package com.epam.esm.services;
 
-import com.epam.esm.DAO.interfaces.GiftCertificateDaoInterface;
+import com.epam.esm.dao.interfaces.GiftCertificateDaoInterface;
 import com.epam.esm.dto.GiftCertificateMainDto;
 import com.epam.esm.models.GiftCertificate;
 import com.epam.esm.pojo.GiftCertificateSaveRequestPojo;
@@ -8,12 +8,11 @@ import com.epam.esm.pojo.GiftCertificateSearchRequestPojo;
 import com.epam.esm.services.interfaces.GiftCertificateServiceInterface;
 import com.epam.esm.util.filters.GiftCertificateFilter;
 import com.epam.esm.util.mappers.GiftCertificateMapper;
+import com.epam.esm.util.sorters.GiftCertificateSorter;
 import com.epam.esm.util.validators.GiftCertificateValidator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
@@ -24,13 +23,17 @@ public class GiftCertificateService implements GiftCertificateServiceInterface {
     private final GiftCertificateMapper giftCertificateMapper;
     private final GiftCertificateValidator giftCertificateValidator;
     private final GiftCertificateFilter giftCertificateFilter;
+    private final GiftCertificateSorter giftCertificateSorter;
+
 
     public GiftCertificateService(GiftCertificateDaoInterface giftCertificateDao, GiftCertificateMapper giftCertificateMapper,
-                                  GiftCertificateValidator giftCertificateValidator, GiftCertificateFilter giftCertificateFilter) {
+                                  GiftCertificateValidator giftCertificateValidator, GiftCertificateFilter giftCertificateFilter,
+                                  GiftCertificateSorter giftCertificateSorter) {
         this.giftCertificateDao = giftCertificateDao;
         this.giftCertificateMapper = giftCertificateMapper;
         this.giftCertificateValidator = giftCertificateValidator;
         this.giftCertificateFilter = giftCertificateFilter;
+        this.giftCertificateSorter = giftCertificateSorter;
     }
 
     public List<GiftCertificateMainDto> getAll() {
@@ -78,9 +81,9 @@ public class GiftCertificateService implements GiftCertificateServiceInterface {
     }
 
     @Transactional
-    public boolean update(GiftCertificateSaveRequestPojo giftCertificate, long id) {
+    public boolean update(GiftCertificateSaveRequestPojo giftCertificate) {
         GiftCertificate gCert = giftCertificateMapper.mapCertificateSaveRequestPojoToGiftCertificateTransfer(giftCertificate);
-        return giftCertificateDao.update(gCert, id);
+        return giftCertificateDao.update(gCert);
     }
 
     @Transactional
@@ -95,47 +98,23 @@ public class GiftCertificateService implements GiftCertificateServiceInterface {
     @Transactional
     public List<GiftCertificateMainDto> getByGiftCertificateSearchRequestPojo(GiftCertificateSearchRequestPojo req) {
         List<GiftCertificateMainDto> gCerts = findGiftCertificateMainDtoBySearchReq(req);
-        return sortedGiftCertificateMainDtoBySearchReq(gCerts, req);
+        return giftCertificateSorter.sortedGiftCertificateMainDtoBySearchReq(gCerts, req);
     }
 
     private List<GiftCertificateMainDto> findGiftCertificateMainDtoBySearchReq(GiftCertificateSearchRequestPojo certsSearchReqPojo) {
         List<GiftCertificateMainDto> gCerts;
-        if (isNotEmpty(certsSearchReqPojo.getName()) || (isNotEmpty(certsSearchReqPojo.getDescription()))) {
-            String nameOrDescriptionString = isNotEmpty(certsSearchReqPojo.getName()) ?
-                    certsSearchReqPojo.getName() :
-                    certsSearchReqPojo.getDescription();
-            if (isNotEmpty(certsSearchReqPojo.getTagName())) {
-                gCerts = List.copyOf(getByPartNameOrDescriptionAndTagName(nameOrDescriptionString,
-                        certsSearchReqPojo.getTagName()));
-            } else {
-                gCerts = List.copyOf(getByPartNameOrDescription(nameOrDescriptionString));
-            }
-        } else {
-            if (isNotEmpty(certsSearchReqPojo.getTagName())) {
-                gCerts = List.copyOf(getByTagName(certsSearchReqPojo.getTagName()));
-            } else {
-                gCerts = getAll();
-            }
-        }
-        return gCerts;
-    }
+        var nameIsPresent = isNotEmpty(certsSearchReqPojo.getName());
+        var descriptionIsPresent = isNotEmpty(certsSearchReqPojo.getDescription());
+        var tagIsPresent = isNotEmpty(certsSearchReqPojo.getTagName());
+        if (nameIsPresent || descriptionIsPresent) {
+            String nameOrDescriptionString = certsSearchReqPojo.getName() != null ? certsSearchReqPojo.getName()
+                    : certsSearchReqPojo.getDescription();
 
-    private List<GiftCertificateMainDto> sortedGiftCertificateMainDtoBySearchReq(List<GiftCertificateMainDto> gCerts, GiftCertificateSearchRequestPojo certsSearchReqPojo) {
-        DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
-        gCerts = new ArrayList<>(gCerts);
-        if (isNotEmpty(certsSearchReqPojo.getSortByName())) {
-            String sortByName = certsSearchReqPojo.getSortByName();
-            if (sortByName.equalsIgnoreCase("ASC")) {
-                gCerts.sort(Comparator.comparing(GiftCertificateMainDto::getName));
-            } else if ((sortByName.equalsIgnoreCase("DESC"))) {
-                gCerts.sort(Comparator.comparing(GiftCertificateMainDto::getName).reversed());
-            }
-        } else if (isNotEmpty(certsSearchReqPojo.getSortByTime())) {
-            String sortByName = certsSearchReqPojo.getSortByTime();
-            gCerts.sort(Comparator.comparing(x -> LocalDateTime.parse(x.getLastUpdateDate(), formatter)));
-            if ((sortByName.equalsIgnoreCase("DESC"))) {
-                Collections.reverse(gCerts);
-            }
+            gCerts = tagIsPresent ? getByPartNameOrDescriptionAndTagName(nameOrDescriptionString, certsSearchReqPojo.getTagName()) :
+                    getByPartNameOrDescription(nameOrDescriptionString);
+        } else {
+            gCerts = tagIsPresent ? getByTagName(certsSearchReqPojo.getTagName()) :
+                    getAll();
         }
         return gCerts;
     }
