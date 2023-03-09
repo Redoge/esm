@@ -1,7 +1,6 @@
 package com.epam.esm.services;
 
-import com.epam.esm.DAO.TagDao;
-import com.epam.esm.DAO.interfaces.TagDaoInterface;
+import com.epam.esm.dao.interfaces.TagDaoInterface;
 import com.epam.esm.dto.TagMainDto;
 import com.epam.esm.services.interfaces.TagServiceInterface;
 import com.epam.esm.util.mappers.TagMapper;
@@ -42,6 +41,6 @@ public class TagService implements TagServiceInterface {
     }
 
     public boolean save(String tagName) {
-        return tagDao.save(tagName);
+        return tagDao.saveByName(tagName);
     }
 }
