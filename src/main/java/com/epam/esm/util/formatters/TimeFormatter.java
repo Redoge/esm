@@ -1,6 +1,5 @@
 package com.epam.esm.util.formatters;
 
-import com.epam.esm.util.mappers.rowMappers.enums.GiftCertificateFieldEnum;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
