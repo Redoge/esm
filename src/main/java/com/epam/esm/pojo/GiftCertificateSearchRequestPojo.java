@@ -2,11 +2,11 @@ package com.epam.esm.pojo;
 
 
 public class GiftCertificateSearchRequestPojo {
-    String name;
-    String description;
-    String tagName;
-    String sortByName;
-    String sortByTime;
+    private String name;
+    private String description;
+    private String tagName;
+    private String sortByName;
+    private String sortByTime;
 
     public String getName() {
         return name;
