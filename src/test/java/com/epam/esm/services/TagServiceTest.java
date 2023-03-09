@@ -1,6 +1,6 @@
 package com.epam.esm.services;
 
-import com.epam.esm.DAO.TagDao;
+import com.epam.esm.dao.TagDao;
 import com.epam.esm.dto.TagMainDto;
 import com.epam.esm.models.Tag;
 import com.epam.esm.util.formatters.TimeFormatter;
@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,44 +32,48 @@ class TagServiceTest {
     @Test
     void getAllTest() {
         when(tagDao.findAll()).thenReturn(tagList);
-        assertEquals(mapTagDtoToString(service.getAll()), mapTagDtoToString(tagDtoList));
+
+        var result = service.getAll();
+        assertEquals(tagDtoList, result);
     }
 
     @Test
     void getByIdTest() {
         when(tagDao.findById(1L)).thenReturn(Optional.ofNullable(tagList.get(0)));
-        assertEquals(service.getById(1L).get().getName(), tagDtoList.get(0).getName());
+
+        var result = service.getById(1L).get();
+        assertEquals(tagDtoList.get(0), result);
     }
 
     @Test
     void getByNameTest() {
         when(tagDao.findByName("name2")).thenReturn(Optional.ofNullable(tagList.get(1)));
-        assertEquals(service.getByName("name2").get().toString(), tagDtoList.get(1).toString());
+
+        var result = service.getByName("name2").get();
+        assertEquals(tagDtoList.get(1), result);
     }
 
     @Test
     void deleteByIdTest() {
         when(tagDao.deleteById(3L)).thenReturn(true);
+
         assertTrue(service.deleteById(3L));
     }
 
     @Test
     void saveTest() {
-        when(tagDao.save("name56")).thenReturn(true);
+        when(tagDao.saveByName("name56")).thenReturn(true);
+
         assertTrue(service.save("name56"));
     }
 
-    private List<String> mapTagDtoToString(List<TagMainDto> tagDto){
-        return tagDto.stream().map(TagMainDto::getName).toList();
-    }
 
     private List<Tag> createTagListForTest() {
-        return List.of(
-                new Tag(1L, "name1", List.of()),
-                new Tag(2L, "name2", List.of()),
-                new Tag(3L, "name3", List.of()),
-                new Tag(4L, "name4", List.of()),
-                new Tag(5L, "name5", List.of())
-        );
+        var tagList = new ArrayList<Tag>();
+        for(int i = 1; i <= 5; i++){
+            var name = "name"+i;
+            tagList.add(new Tag(i, name, List.of()));
+        }
+        return tagList;
     }
 }
