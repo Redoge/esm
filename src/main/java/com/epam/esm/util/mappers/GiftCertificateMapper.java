@@ -26,12 +26,10 @@ public class GiftCertificateMapper {
         giftCertificate.setDuration(certificatePojo.getDuration());
         giftCertificate.setPrice(certificatePojo.getPrice());
         if (CollectionUtils.isNotEmpty(certificatePojo.getTags())) {
-            giftCertificate.setTags(
-                    certificatePojo.getTags().stream().map(tagDto -> {
-                        Tag tag = new Tag();
-                        tag.setName(tagDto);
-                        return tag;
-                    }).collect(Collectors.toList()));
+            giftCertificate.setTags(certificatePojo.getTags()
+                    .stream()
+                    .map(Tag::new)
+                    .collect(Collectors.toList()));
         }
         return giftCertificate;
     }
