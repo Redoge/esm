@@ -1,14 +1,10 @@
 package com.epam.esm.util.mappers.rowMappers;
 
-import com.epam.esm.dto.GiftCertificateMainDto;
 import com.epam.esm.dto.TagNestedDto;
 import com.epam.esm.models.GiftCertificate;
 import com.epam.esm.models.interfaces.TagInterface;
-import com.epam.esm.util.formatters.TimeFormatter;
 import com.epam.esm.util.mappers.interfaces.ToListRowMapperInterface;
-import com.epam.esm.util.mappers.rowMappers.enums.GiftCertificateFieldEnum;
-import com.epam.esm.util.mappers.rowMappers.enums.TagFieldEnum;
-import org.apache.commons.collections4.CollectionUtils;
+import com.epam.esm.util.mappers.rowMappers.fieldNames.TagField;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
 
@@ -19,29 +15,28 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
+import static com.epam.esm.util.mappers.rowMappers.fieldNames.GiftCertificateField.*;
+import static java.lang.Long.parseLong;
+import static java.lang.String.valueOf;
+import static java.util.Comparator.comparing;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
+
 @Component
 public class GiftCertificateRowMapper implements RowMapper<GiftCertificate>, ToListRowMapperInterface<GiftCertificate>{
-
+    private static final String TIME_PATTERN = "yyyy-MM-dd HH:mm:ss.S";
 
     @Override
     public GiftCertificate mapRow(ResultSet rs, int rowNum) throws SQLException {
-        GiftCertificate giftCertificate = new GiftCertificate();
-        giftCertificate.setId(rs.getLong(GiftCertificateFieldEnum.ID.getName()));
-        giftCertificate.setName(rs.getString(GiftCertificateFieldEnum.NAME.getName()));
-        giftCertificate.setDescription(rs.getString(GiftCertificateFieldEnum.DESCRIPTION.getName()));
-        giftCertificate.setPrice(rs.getBigDecimal(GiftCertificateFieldEnum.PRICE.getName()));
-        giftCertificate.setDuration(rs.getInt(GiftCertificateFieldEnum.DURATION.getName()));
-        giftCertificate.setCreateDate(rs.getObject(GiftCertificateFieldEnum.CREATE_DATE.getName(), LocalDateTime.class));
-        giftCertificate.setLastUpdateDate(rs.getObject(GiftCertificateFieldEnum.LAST_UPDATE_DATE.getName(), LocalDateTime.class));
+        var giftCertificate = mapResultSetToGiftCertificate(rs);
         List<TagInterface> tags = new ArrayList<>();
         do {
-            if (rs.getLong(TagFieldEnum.ID.getName()) != 0) {
+            if (rs.getLong(TagField.ID) != 0) {
                 TagNestedDto tag = new TagNestedDto();
-                tag.setId(rs.getLong(TagFieldEnum.ID.getName()));
-                tag.setName(rs.getString(TagFieldEnum.NAME.getName()));
+                tag.setId(rs.getLong(TagField.ID));
+                tag.setName(rs.getString(TagField.NAME));
                 tags.add(tag);
             }
-        } while (rs.next() && giftCertificate.getId() == rs.getLong(GiftCertificateFieldEnum.ID.getName()));
+        } while (rs.next() && giftCertificate.getId() == rs.getLong(ID));
         giftCertificate.setTags(tags);
         return giftCertificate;
 
@@ -49,64 +44,80 @@ public class GiftCertificateRowMapper implements RowMapper<GiftCertificate>, ToL
 
     @Override
     public List<GiftCertificate> mapRowToList(List<Map<String, Object>> rows) {
-        if(CollectionUtils.isEmpty(rows)) return List.of();
-        rows.sort(Comparator.comparing(k -> Long.parseLong(String.valueOf(k.get(GiftCertificateFieldEnum.ID.getName())))));
-        List<GiftCertificate> result = new ArrayList<>();
-        Map<Long, List<TagInterface>> resultTagMap = new HashMap<>();
-        GiftCertificate tmpCert = null;
-        for(int i = 0; i < rows.size(); i++) {
-            Map<String, Object> rowMap = rows.get(i);
-            if(tmpCert == null) {
-                tmpCert = new GiftCertificate();
-                tmpCert.setId(Long.parseLong(String.valueOf(rowMap.get(GiftCertificateFieldEnum.ID.getName()))));
-                tmpCert.setName(String.valueOf(rowMap.get(GiftCertificateFieldEnum.NAME.getName())));
-                tmpCert.setDescription(String.valueOf(rowMap.get(GiftCertificateFieldEnum.DESCRIPTION.getName())));
-                tmpCert.setPrice(new BigDecimal(String.valueOf(rowMap.get(GiftCertificateFieldEnum.PRICE.getName()))));
-                tmpCert.setDuration(Integer.parseInt(String.valueOf(rowMap.get(GiftCertificateFieldEnum.DURATION.getName()))));
-                tmpCert.setCreateDate(LocalDateTime.parse(
-                        String.valueOf(rowMap.get(GiftCertificateFieldEnum.CREATE_DATE.getName())), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.S")));
-                tmpCert.setLastUpdateDate(LocalDateTime.parse(
-                        String.valueOf(rowMap.get(GiftCertificateFieldEnum.LAST_UPDATE_DATE.getName())), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.S")));
+        if (isEmpty(rows))
+            return List.of();
+        rows.sort(comparing(row -> parseLong(valueOf(row.get(ID)))));
 
+        List<GiftCertificate> gCert = new ArrayList<>();
+        Map<Long, List<TagInterface>> resultTagMap = new HashMap<>();
+        GiftCertificate certificate = null;
+        Map<String, Object> rowMap;
+        TagNestedDto tag;
+
+        for (int i = 0; i < rows.size(); i++) {
+            rowMap = rows.get(i);
+            if (certificate == null) {
+                certificate = mapRowMapToGiftCertificate(rowMap);
             }
-            if (tmpCert.getId() == Long.parseLong(String.valueOf(rowMap.get(GiftCertificateFieldEnum.ID.getName())))) {
-                if (resultTagMap.get(tmpCert.getId()) != null) {
-                    resultTagMap.get(tmpCert.getId()).add(buildTagNestedDto(rowMap));
-                } else {
-                    var tag = buildTagNestedDto(rowMap);
-                    if (tag != null) {
-                        resultTagMap.put(tmpCert.getId(), new LinkedList<>(
-                                List.of(tag)));
-                    }
+            if (certificate.getId() == parseLong(valueOf(rowMap.get(ID)))) {
+                tag = buildTagNestedDto(rowMap);
+                if (tag != null) {
+                    resultTagMap.computeIfAbsent(certificate.getId(), k -> new ArrayList<>()).add(tag);
                 }
             } else {
-                result.add(tmpCert);
-                tmpCert = null;
+                gCert.add(certificate);
+                certificate = null;
                 i--;
             }
         }
-        result.add(tmpCert);
-        addTagNestedDtoToGiftCertificate(result, resultTagMap);
-        return result;
+        gCert.add(certificate);
+        addTagNestedDtoToGiftCertificate(gCert, resultTagMap);
+        return gCert;
     }
 
     private void addTagNestedDtoToGiftCertificate(
-            List<GiftCertificate> result, Map<Long, List<TagInterface>> resultTagMap){
-        for(var gc: result){
-            if(resultTagMap.get(gc.getId())!=null) {
-                gc.setTags(resultTagMap.get(gc.getId()));
+        List<GiftCertificate> result, Map<Long, List<TagInterface>> resultTagMap){
+        for(var gCert: result){
+            if(resultTagMap.get(gCert.getId())!=null) {
+                gCert.setTags(resultTagMap.get(gCert.getId()));
             }else{
-                gc.setTags(List.of());
+                gCert.setTags(List.of());
             }
         }
     }
 
     private TagNestedDto buildTagNestedDto(Map<String, Object> rowMap) {
-        if (rowMap.get(TagFieldEnum.ID.getName()) == null)
+        if (rowMap.get(TagField.ID) == null)
             return null;
         var result = new TagNestedDto();
-        result.setId(Long.parseLong(String.valueOf(rowMap.get(TagFieldEnum.ID.getName()))));
-        result.setName(String.valueOf(rowMap.get(TagFieldEnum.NAME.getName())));
+        result.setId(parseLong(valueOf(rowMap.get(TagField.ID))));
+        result.setName(valueOf(rowMap.get(TagField.NAME)));
         return result;
+    }
+
+    protected GiftCertificate mapResultSetToGiftCertificate(ResultSet resultSet) throws SQLException {
+        var gCert = new GiftCertificate();
+        gCert.setId(resultSet.getLong(ID));
+        gCert.setName(resultSet.getString(NAME));
+        gCert.setDescription(resultSet.getString(DESCRIPTION));
+        gCert.setPrice(resultSet.getBigDecimal(PRICE));
+        gCert.setDuration(resultSet.getInt(DURATION));
+        gCert.setCreateDate(resultSet.getObject(CREATE_DATE, LocalDateTime.class));
+        gCert.setLastUpdateDate(resultSet.getObject(LAST_UPDATE_DATE, LocalDateTime.class));
+        return gCert;
+    }
+
+    protected GiftCertificate mapRowMapToGiftCertificate(Map<String, Object> rowMap) {
+        var gCert = new GiftCertificate();
+        gCert.setId(parseLong(valueOf(rowMap.get(ID))));
+        gCert.setName(valueOf(rowMap.get(NAME)));
+        gCert.setDescription(valueOf(rowMap.get(DESCRIPTION)));
+        gCert.setPrice(new BigDecimal(valueOf(rowMap.get(PRICE))));
+        gCert.setDuration(Integer.parseInt(valueOf(rowMap.get(DURATION))));
+        gCert.setCreateDate(LocalDateTime.parse(
+                valueOf(rowMap.get(CREATE_DATE)), DateTimeFormatter.ofPattern(TIME_PATTERN)));
+        gCert.setLastUpdateDate(LocalDateTime.parse(
+                valueOf(rowMap.get(LAST_UPDATE_DATE)), DateTimeFormatter.ofPattern(TIME_PATTERN)));
+        return gCert;
     }
 }

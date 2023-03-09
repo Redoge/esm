@@ -1,6 +1,6 @@
 package com.epam.esm.util.mappers.rowMappers.fieldNames;
 
-public class GiftCertificateFields {
+public class GiftCertificateField {
     public static final String ID = "gift_certificate_id";
     public static final String NAME = "gift_certificate_name";
     public static final String DESCRIPTION = "gift_certificate_description";
