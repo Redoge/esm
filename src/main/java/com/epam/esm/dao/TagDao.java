@@ -1,6 +1,6 @@
-package com.epam.esm.DAO;
+package com.epam.esm.dao;
 
-import com.epam.esm.DAO.interfaces.TagDaoInterface;
+import com.epam.esm.dao.interfaces.TagDaoInterface;
 import com.epam.esm.models.Tag;
 import com.epam.esm.util.mappers.rowMappers.TagRowMapper;
 import org.springframework.dao.EmptyResultDataAccessException;

@@ -1,13 +1,14 @@
-package com.epam.esm.DAO;
+package com.epam.esm.dao;
 
-import com.epam.esm.DAO.interfaces.GiftCertificateDaoInterface;
-import com.epam.esm.DAO.interfaces.ManyToManyRelation.GiftCertificateTagInterface;
-import com.epam.esm.DAO.interfaces.TagDaoInterface;
+import com.epam.esm.dao.interfaces.GiftCertificateDaoInterface;
+import com.epam.esm.dao.interfaces.ManyToManyRelation.GiftCertificateTagInterface;
+import com.epam.esm.dao.interfaces.TagDaoInterface;
 import com.epam.esm.models.GiftCertificate;
 import com.epam.esm.models.interfaces.TagInterface;
 import com.epam.esm.util.filters.TagFilter;
 import com.epam.esm.util.mappers.rowMappers.GiftCertificateRowMapper;
 import io.micrometer.common.util.StringUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -148,8 +149,13 @@ public class GiftCertificateDao implements GiftCertificateDaoInterface {
     }
 
     private void addNewTagToCertificate(List<TagInterface> tags, long certId) {
+        var allTags = tagDao.findAll();
         for (var tag : tags) {
-            var findedTag = tagDao.findByName(tag.getName());
+            var findedTag = allTags
+                    .stream()
+                    .filter(existTag->existTag.getName()
+                            .equals(tag.getName()))
+                    .findAny();
             if (findedTag.isPresent()) {
                 giftCertificateTagDao.addTagToCertificateByTagIdAndCertId(findedTag.get().getId(), certId);
             } else {
@@ -168,7 +174,7 @@ public class GiftCertificateDao implements GiftCertificateDaoInterface {
         boolean diffName = newGc.getName() != null && !newGc.getName().equals(oldGc.getName());
         boolean diffDescription = newGc.getDescription() != null && !newGc.getDescription().equals(oldGc.getDescription());
         boolean diffPrice = newGc.getPrice() != null && !newGc.getPrice().equals(oldGc.getPrice());
-        boolean diffDuration = newGc.getDuration() != 0 && !(newGc.getDuration() == oldGc.getDuration());
+        boolean diffDuration = newGc.getDuration() != 0 && (newGc.getDuration() != oldGc.getDuration());
         boolean needToUpdate = (diffName || diffDescription || diffPrice || diffDuration);
         if (needToUpdate) {
             try{

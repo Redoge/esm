@@ -1,4 +1,4 @@
-package com.epam.esm.DAO.interfaces;
+package com.epam.esm.dao.interfaces;
 
 import com.epam.esm.models.GiftCertificate;
 
