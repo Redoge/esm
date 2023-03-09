@@ -47,7 +47,9 @@ public class GiftCertificateController {
     public ResponseEntity<?> create(@RequestBody GiftCertificateSaveRequestPojo giftCert) {
         boolean success;
         success = giftCertificateService.save(giftCert);
-        if (success) giftCert.setId(giftCertificateService.getByName(giftCert.getName()).get().getId());
+        if (success) {
+            giftCert.setId(giftCertificateService.getByName(giftCert.getName()).get().getId());
+        }
         return success ? new ResponseEntity<>(new ResponseWrapper(HttpStatus.CREATED.value(),
                 String.format("Created successfully! (Name = %s, id = %d)", giftCert.getName(), giftCert.getId()),
                 2011), HttpStatus.CREATED) :
@@ -60,7 +62,7 @@ public class GiftCertificateController {
     public ResponseEntity<?> update(@PathVariable long id, @RequestBody GiftCertificateSaveRequestPojo giftCert) {
         boolean success = giftCert != null && (giftCert.getId() == 0 || id == giftCert.getId());
         if (success && giftCert.getId() == 0) giftCert.setId(id);
-        success = success && giftCertificateService.update(giftCert, id);
+        success = success && giftCertificateService.update(giftCert);
         return success ? new ResponseEntity<>(new ResponseWrapper(HttpStatus.OK.value(),
                 String.format("Updated successfully! (id = %d)", id), 2011), HttpStatus.OK)
                 : new ResponseEntity<>(new ResponseWrapper(HttpStatus.BAD_REQUEST.value(),
