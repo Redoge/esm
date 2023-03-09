@@ -3,6 +3,8 @@ package com.epam.esm.dto;
 
 import com.epam.esm.models.interfaces.GiftCertificateInterface;
 import com.epam.esm.models.interfaces.TagInterface;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -98,6 +100,23 @@ public class GiftCertificateMainDto implements GiftCertificateInterface {
     public void addTag(TagNestedDto tag) {
         this.tags.add(tag);
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+
+        if (o == null || getClass() != o.getClass()) return false;
+
+        GiftCertificateMainDto that = (GiftCertificateMainDto) o;
+
+        return new EqualsBuilder().append(id, that.id).append(duration, that.duration).append(name, that.name).append(description, that.description).append(price, that.price).append(createDate, that.createDate).append(lastUpdateDate, that.lastUpdateDate).append(tags, that.tags).isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder(17, 37).append(id).append(name).append(description).append(price).append(duration).append(createDate).append(lastUpdateDate).append(tags).toHashCode();
+    }
+
     @Override
     public String toString() {
         return "GiftCertificate{" +

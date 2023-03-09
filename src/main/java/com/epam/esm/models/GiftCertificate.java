@@ -2,11 +2,13 @@ package com.epam.esm.models;
 
 import com.epam.esm.models.interfaces.GiftCertificateInterface;
 import com.epam.esm.models.interfaces.TagInterface;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Objects;
 
 public class GiftCertificate implements GiftCertificateInterface {
     private long id;
@@ -103,27 +105,35 @@ public class GiftCertificate implements GiftCertificateInterface {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
+
         if (o == null || getClass() != o.getClass()) return false;
 
         GiftCertificate that = (GiftCertificate) o;
 
-        if (id != that.id) return false;
-        if (duration != that.duration) return false;
-        if (!name.equals(that.name)) return false;
-        if (!Objects.equals(description, that.description)) return false;
-        return (!price.equals(that.price));
+        return new EqualsBuilder()
+                .append(id, that.id)
+                .append(duration, that.duration)
+                .append(name, that.name)
+                .append(description, that.description)
+                .append(price.toString(), that.price.toString())
+                .append(createDate.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME), that.createDate.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
+                .append(lastUpdateDate.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME), that.lastUpdateDate.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
+                .append(tags, that.tags)
+                .isEquals();
     }
 
     @Override
     public int hashCode() {
-        int result = (int) (id ^ (id >>> 32));
-        result = 31 * result + name.hashCode();
-        result = 31 * result + (description != null ? description.hashCode() : 0);
-        result = 31 * result + price.hashCode();
-        result = 31 * result + duration;
-        result = 31 * result + createDate.hashCode();
-        result = 31 * result + lastUpdateDate.hashCode();
-        return result;
+        return new HashCodeBuilder(17, 37)
+                .append(id)
+                .append(name)
+                .append(description)
+                .append(price)
+                .append(duration)
+                .append(createDate.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
+                .append(lastUpdateDate.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
+                .append(tags)
+                .toHashCode();
     }
 
     @Override

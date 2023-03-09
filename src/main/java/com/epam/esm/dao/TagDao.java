@@ -1,6 +1,6 @@
-package com.epam.esm.DAO;
+package com.epam.esm.dao;
 
-import com.epam.esm.DAO.interfaces.TagDaoInterface;
+import com.epam.esm.dao.interfaces.TagDaoInterface;
 import com.epam.esm.models.Tag;
 import com.epam.esm.util.mappers.rowMappers.TagRowMapper;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -27,10 +27,7 @@ public class TagDao implements TagDaoInterface {
     private static final String DELETE_BY_ID_QUERY = "DELETE FROM tag WHERE tag_id = ?;";
     private static final String SAVE_QUERY = "INSERT INTO `tag` (tag_name) SELECT ? " +
             "WHERE NOT EXISTS (SELECT * FROM `tag` WHERE tag_name = ?)";
-    private static final String DELETE_FROM_CERT_BY_TAG_ID_AND_CERTIFICATE_ID_QUERY = "DELETE FROM gift_certificate_tag " +
-            "WHERE tag_id = ? AND gift_certificate_id = ?;";
-    private static final String ADD_TO_CERT_BY_TAG_ID_AND_CERTIFICATE_ID_QUERY = "INSERT INTO gift_certificate_tag " +
-            "(tag_id, gift_certificate_id) VALUE(?, ?);";
+
     private final JdbcTemplate jdbcTemplate;
     private final TagRowMapper tagRowMapper;
 
@@ -68,19 +65,8 @@ public class TagDao implements TagDaoInterface {
     }
 
     @Override
-    public boolean save(String tagName) {
+    public boolean saveByName(String tagName) {
         return jdbcTemplate.update(SAVE_QUERY, tagName, tagName) == 1;
     }
-
-    @Override
-    public boolean removeFromGiftCertificateByTagIdAndCertId(long tagId, long certId) {
-        return jdbcTemplate.update(DELETE_FROM_CERT_BY_TAG_ID_AND_CERTIFICATE_ID_QUERY, tagId, certId) != 0;
-    }
-
-    @Override
-    public boolean addTagToCertificateByTagIdAndCertId(long tagId, long certId) {
-        return jdbcTemplate.update(ADD_TO_CERT_BY_TAG_ID_AND_CERTIFICATE_ID_QUERY, tagId, certId) != 0;
-    }
-
 
 }

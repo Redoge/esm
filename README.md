@@ -23,10 +23,14 @@
 
 ---
 ## Build
+Used war plugin:
 ```bash
 mvn clean package war:war
 ```
-
+or without war plugin
+```bash
+mvn clean package 
+```
 ---
 ## Deployment
 To deploy the project, copy the `esm.war` file to the webapps directory of your Tomcat server.

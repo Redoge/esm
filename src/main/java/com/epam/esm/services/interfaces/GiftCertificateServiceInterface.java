@@ -23,7 +23,7 @@ public interface GiftCertificateServiceInterface {
 
     boolean deleteById(long id);
 
-    boolean update(GiftCertificateSaveRequestPojo giftCertificate, long id);
+    boolean update(GiftCertificateSaveRequestPojo giftCertificate);
 
     boolean save(GiftCertificateSaveRequestPojo giftCertificate);
 

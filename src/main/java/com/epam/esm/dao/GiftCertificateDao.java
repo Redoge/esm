@@ -1,11 +1,14 @@
-package com.epam.esm.DAO;
+package com.epam.esm.dao;
 
-import com.epam.esm.DAO.interfaces.GiftCertificateDaoInterface;
+import com.epam.esm.dao.interfaces.GiftCertificateDaoInterface;
+import com.epam.esm.dao.interfaces.ManyToManyRelation.GiftCertificateTagInterface;
+import com.epam.esm.dao.interfaces.TagDaoInterface;
 import com.epam.esm.models.GiftCertificate;
 import com.epam.esm.models.interfaces.TagInterface;
 import com.epam.esm.util.filters.TagFilter;
 import com.epam.esm.util.mappers.rowMappers.GiftCertificateRowMapper;
 import io.micrometer.common.util.StringUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -57,14 +60,16 @@ public class GiftCertificateDao implements GiftCertificateDaoInterface {
             "gift_certificate_last_update_date = ? WHERE gift_certificate_id = ?;";
     private final JdbcTemplate jdbcTemplate;
     private final GiftCertificateRowMapper giftCertificateRowMapper;
-    private final TagDao tagDao;
+    private final TagDaoInterface tagDao;
     private final TagFilter tagFilter;
+    private final GiftCertificateTagInterface giftCertificateTagDao;
 
-    public GiftCertificateDao(JdbcTemplate jdbcTemplate, GiftCertificateRowMapper giftCertificateRowMapper, TagDao tagDao, TagFilter tagFilter) {
+    public GiftCertificateDao(JdbcTemplate jdbcTemplate, GiftCertificateRowMapper giftCertificateRowMapper, TagDaoInterface tagDao, TagFilter tagFilter, GiftCertificateTagInterface giftCertificateTagDao) {
         this.jdbcTemplate = jdbcTemplate;
         this.giftCertificateRowMapper = giftCertificateRowMapper;
         this.tagDao = tagDao;
         this.tagFilter = tagFilter;
+        this.giftCertificateTagDao = giftCertificateTagDao;
     }
 
     @Override
@@ -92,27 +97,28 @@ public class GiftCertificateDao implements GiftCertificateDaoInterface {
 
     @Override
     public List<GiftCertificate> findByPartNameOrDescriptionAndTagName(String nameOrDescription, String tagName) {
-        return List.copyOf(giftCertificateRowMapper.mapRowToList(jdbcTemplate.queryForList(FIND_BY_PART_NAME_OR_DESCRIPTION_AND_TAG_NAME,
-                "%" + nameOrDescription + "%", "%" + nameOrDescription + "%", tagName)));
+        return giftCertificateRowMapper.mapRowToList(jdbcTemplate.queryForList(FIND_BY_PART_NAME_OR_DESCRIPTION_AND_TAG_NAME,
+                "%" + nameOrDescription + "%", "%" + nameOrDescription + "%", tagName));
     }
 
     @Override
     public List<GiftCertificate> findByPartNameOrDescription(String nameOrDescription) {
-        return List.copyOf(giftCertificateRowMapper.mapRowToList(jdbcTemplate.queryForList(FIND_BY_PART_NAME_OR_DESCRIPTION,
-                "%" + nameOrDescription + "%", "%" + nameOrDescription + "%")));
+        return giftCertificateRowMapper.mapRowToList(jdbcTemplate.queryForList(FIND_BY_PART_NAME_OR_DESCRIPTION,
+                "%" + nameOrDescription + "%", "%" + nameOrDescription + "%"));
     }
 
     @Override
     public List<GiftCertificate> findByTagName(String tagName) {
-        return List.copyOf(giftCertificateRowMapper.mapRowToList(jdbcTemplate.queryForList(FIND_BY_TAG_NAME, tagName)));
+        return giftCertificateRowMapper.mapRowToList(jdbcTemplate.queryForList(FIND_BY_TAG_NAME, tagName));
     }
 
     @Override
-    public boolean update(GiftCertificate gCert, long gcId) {
-        GiftCertificate oldGc = findById(gcId).orElse(null);
+    public boolean update(GiftCertificate gCert) {
+        var gCertId = gCert.getId();
+        GiftCertificate oldGc = findById(gCertId).orElse(null);
         //if id <= 0 -> bad request
-        if (oldGc == null || gcId <= 0) return false;
-        boolean correct = updateOnlyNewFieldsGiftCertificate(oldGc, gCert, gcId);
+        if (oldGc == null || gCertId <= 0) return false;
+        boolean correct = updateOnlyNewFieldsGiftCertificate(oldGc, gCert, gCertId);
         if (!correct) return false;
         //If the tags have not received (is null) anything to do
         if(gCert.getTags()==null) return true;
@@ -120,8 +126,8 @@ public class GiftCertificateDao implements GiftCertificateDaoInterface {
         List<TagInterface> newTags = gCert.getTags();
         if (oldTags.equals(newTags) && StringUtils.isNotEmpty(oldTags.get(0).getName()))
             return false;
-        removeOldTagFromCertificate(tagFilter.filterTagsThatNeedToRemoveFromCerts(oldTags, newTags), gcId);
-        addNewTagToCertificate(tagFilter.filterTagsThatNeedToAddToCerts(oldTags, newTags), gcId);
+        removeOldTagFromCertificate(tagFilter.filterTagsThatNeedToRemoveFromCerts(oldTags, newTags), gCertId);
+        addNewTagToCertificate(tagFilter.filterTagsThatNeedToAddToCerts(oldTags, newTags), gCertId);
         return true;
     }
 
@@ -143,27 +149,32 @@ public class GiftCertificateDao implements GiftCertificateDaoInterface {
     }
 
     private void addNewTagToCertificate(List<TagInterface> tags, long certId) {
+        var allTags = tagDao.findAll();
         for (var tag : tags) {
-            var tmpTag = tagDao.findByName(tag.getName());
-            if (tmpTag.isPresent()) {
-                tagDao.addTagToCertificateByTagIdAndCertId(tmpTag.get().getId(), certId);
+            var findedTag = allTags
+                    .stream()
+                    .filter(existTag->existTag.getName()
+                            .equals(tag.getName()))
+                    .findAny();
+            if (findedTag.isPresent()) {
+                giftCertificateTagDao.addTagToCertificateByTagIdAndCertId(findedTag.get().getId(), certId);
             } else {
-                tagDao.save(tag.getName());
-                tmpTag = tagDao.findByName(tag.getName());
-                tagDao.addTagToCertificateByTagIdAndCertId(tmpTag.get().getId(), certId);
+                tagDao.saveByName(tag.getName());
+                findedTag = tagDao.findByName(tag.getName());
+                giftCertificateTagDao.addTagToCertificateByTagIdAndCertId(findedTag.get().getId(), certId);
             }
         }
     }
     private void removeOldTagFromCertificate(List<TagInterface> tags, long certId) {
         for (var tag : tags) {
-            tagDao.removeFromGiftCertificateByTagIdAndCertId(tagDao.findByName(tag.getName()).get().getId(), certId);
+            giftCertificateTagDao.removeFromGiftCertificateByTagIdAndCertId(tagDao.findByName(tag.getName()).get().getId(), certId);
         }
     }
     private boolean updateOnlyNewFieldsGiftCertificate(GiftCertificate oldGc, GiftCertificate newGc, long id){
         boolean diffName = newGc.getName() != null && !newGc.getName().equals(oldGc.getName());
         boolean diffDescription = newGc.getDescription() != null && !newGc.getDescription().equals(oldGc.getDescription());
         boolean diffPrice = newGc.getPrice() != null && !newGc.getPrice().equals(oldGc.getPrice());
-        boolean diffDuration = newGc.getDuration() != 0 && !(newGc.getDuration() == oldGc.getDuration());
+        boolean diffDuration = newGc.getDuration() != 0 && (newGc.getDuration() != oldGc.getDuration());
         boolean needToUpdate = (diffName || diffDescription || diffPrice || diffDuration);
         if (needToUpdate) {
             try{
