@@ -8,7 +8,6 @@ import java.util.List;
 @Component
 public class GiftCertificateFilter {
     public List<GiftCertificate> filterGiftCertificateByTagName(List<GiftCertificate> certs, String tagName) {
-        certs.forEach(s-> System.out.println(s.getClass()));
         if (CollectionUtils.isEmpty(certs)) {
             return List.of();
         }
