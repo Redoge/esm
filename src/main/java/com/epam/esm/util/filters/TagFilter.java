@@ -4,6 +4,7 @@ import com.epam.esm.models.interfaces.TagInterface;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
@@ -19,9 +20,9 @@ public class TagFilter {
     }
     public List<TagInterface> filterTagsThatNeedToAddToCerts(List<TagInterface> oldTags, List<TagInterface> newTags) {
         if (isNotEmpty(oldTags) || (oldTags.size() == 1 && oldTags.get(0).getName() != null)) {
-            return newTags.stream()
+            return List.copyOf(newTags.stream()
                     .filter(tag -> !oldTags.contains(tag.getName()))
-                    .toList();
+                    .collect(Collectors.toSet()));
         }
         return newTags;
     }
