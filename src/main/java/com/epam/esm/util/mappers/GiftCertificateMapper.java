@@ -21,6 +21,7 @@ public class GiftCertificateMapper {
 
     public GiftCertificate mapCertificateSaveRequestPojoToGiftCertificateTransfer(GiftCertificateSaveRequestPojo certificatePojo) {
         GiftCertificate giftCertificate = new GiftCertificate();
+        giftCertificate.setId(certificatePojo.getId());
         giftCertificate.setName(certificatePojo.getName());
         giftCertificate.setDescription(certificatePojo.getDescription());
         giftCertificate.setDuration(certificatePojo.getDuration());
