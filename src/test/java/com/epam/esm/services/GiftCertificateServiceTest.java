@@ -13,6 +13,7 @@ import com.epam.esm.util.sorters.GiftCertificateSorter;
 import com.epam.esm.util.sorters.enums.SortingOrder;
 import com.epam.esm.util.sorters.enums.SortingType;
 import com.epam.esm.util.validators.GiftCertificateValidator;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -47,6 +48,7 @@ class GiftCertificateServiceTest {
     private final String TEST_NAME_INCORRECT = "name969";
     private final String TEST_DESCRIPTION = "description3";
     @Test
+    @DisplayName("getAll Test")
     void getAllTest() {
         when(giftCertificateDao.findAll()).thenReturn(certificates);
 
@@ -55,6 +57,7 @@ class GiftCertificateServiceTest {
     }
 
     @Test
+    @DisplayName("getAll Test - empty result")
     void getAllEmptyTest() {
         when(giftCertificateDao.findAll()).thenReturn(List.of());
 
@@ -63,6 +66,7 @@ class GiftCertificateServiceTest {
     }
 
     @Test
+    @DisplayName("getById Test")
     void getByIdTest() {
         when(giftCertificateDao.findById(TEST_ID)).thenReturn(Optional.ofNullable(certificates.get(0)));
 
@@ -71,6 +75,7 @@ class GiftCertificateServiceTest {
     }
 
     @Test
+    @DisplayName("getById Test - empty result")
     void getByIdEmptyTest() {
         when(giftCertificateDao.findById(TEST_ID)).thenReturn(Optional.empty());
 
@@ -79,6 +84,7 @@ class GiftCertificateServiceTest {
     }
 
     @Test
+    @DisplayName("getByName Test")
     void getByNameTest() {
         when(giftCertificateDao.findByName(TEST_NAME)).thenReturn(Optional.ofNullable(certificates.get(0)));
 
@@ -87,6 +93,7 @@ class GiftCertificateServiceTest {
     }
 
     @Test
+    @DisplayName("getByName Test - empty result")
     void getByNameEmptyTest() {
         when(giftCertificateDao.findByName(TEST_NAME_INCORRECT)).thenReturn(Optional.empty());
 
@@ -95,6 +102,7 @@ class GiftCertificateServiceTest {
     }
 
     @Test
+    @DisplayName("getByPartNameOrDescriptionAndTagName Test")
     void getByPartNameOrDescriptionAndTagNameTest() {
         when(giftCertificateDao.findByPartNameOrDescription(TEST_NAME_WITH_TAG)).
                 thenReturn(List.of(certificates.get(3)));
@@ -104,6 +112,7 @@ class GiftCertificateServiceTest {
     }
 
     @Test
+    @DisplayName("getByPartNameOrDescriptionAndTagName Test - empty result")
     void getByPartNameOrDescriptionAndTagNameEmptyTest() {
         when(giftCertificateDao.findByPartNameOrDescription(TEST_NAME_WITH_TAG)).
                 thenReturn(List.of(certificates.get(3)));
@@ -113,6 +122,7 @@ class GiftCertificateServiceTest {
     }
 
     @Test
+    @DisplayName("findByPartNameOrDescription with Name Test")
     void getByPartNameOrDescriptionByNameTest() {
         when(giftCertificateDao.findByPartNameOrDescription(TEST_NAME_WITH_TAG)).
                 thenReturn(List.of(certificates.get(3)));
@@ -122,6 +132,7 @@ class GiftCertificateServiceTest {
     }
 
     @Test
+    @DisplayName("findByPartNameOrDescription with Description Test")
     void getByPartNameOrDescriptionByDescriptionTest() {
         when(giftCertificateDao.findByPartNameOrDescription(TEST_DESCRIPTION)).
                 thenReturn(List.of(certificates.get(3)));
@@ -131,6 +142,7 @@ class GiftCertificateServiceTest {
     }
 
     @Test
+    @DisplayName("findByPartNameOrDescription Test - empty result")
     void getByPartNameOrDescriptionEmptyTest() {
         when(giftCertificateDao.findByPartNameOrDescription(TEST_DESCRIPTION)).
                 thenReturn(List.of());
@@ -140,6 +152,7 @@ class GiftCertificateServiceTest {
     }
 
     @Test
+    @DisplayName("Get by tag name")
     void getByTagNameTest() {
         when(giftCertificateDao.findAll()).
                 thenReturn(certificates);
@@ -149,6 +162,7 @@ class GiftCertificateServiceTest {
     }
 
     @Test
+    @DisplayName("Get by tag name - empty result")
     void getByTagNameEmptyTest() {
         when(giftCertificateDao.findAll()).
                 thenReturn(certificates);
@@ -158,6 +172,7 @@ class GiftCertificateServiceTest {
     }
 
     @Test
+    @DisplayName("Save Test - CORRECT")
     void deleteByIdTest() {
         when(giftCertificateDao.deleteById(TEST_ID)).
                 thenReturn(true);
@@ -167,6 +182,7 @@ class GiftCertificateServiceTest {
     }
 
     @Test
+    @DisplayName("Save Test - FAILED")
     void saveFailedTest() {
         var result = giftCertificateService.save(new GiftCertificateSaveRequestPojo());
         assertFalse(result);
@@ -174,8 +190,10 @@ class GiftCertificateServiceTest {
 
 
     @Test
+    @DisplayName("Get by empty GiftCertificateSearchRequestPojo")
     void getByGiftCertificateSearchRequestPojoEmptyTest() {
         GiftCertificateSearchRequestPojo pojo = new GiftCertificateSearchRequestPojo();
+
         when(giftCertificateDao.findAll()).
                 thenReturn(certificates);
 
@@ -184,9 +202,11 @@ class GiftCertificateServiceTest {
     }
 
     @Test
+    @DisplayName("Get by GiftCertificateSearchRequestPojo with Name or Description Test")
     void getByGiftCertificateSearchRequestPojoByNameOrDescriptionTest() {
         GiftCertificateSearchRequestPojo pojo = new GiftCertificateSearchRequestPojo();
         pojo.setName(TEST_NAME);
+
         when(giftCertificateDao.findByPartNameOrDescription(TEST_NAME)).
                 thenReturn(List.of(certificates.get(0)));
 
@@ -196,9 +216,11 @@ class GiftCertificateServiceTest {
     }
 
     @Test
+    @DisplayName("Get by GiftCertificateSearchRequestPojo with Tag name Test")
     void getByGiftCertificateSearchRequestPojoByTagTest() {
         GiftCertificateSearchRequestPojo pojo = new GiftCertificateSearchRequestPojo();
         pojo.setTagName(TEST_NAME);
+
         when(giftCertificateDao.findAll()).
                 thenReturn(certificates);
 
@@ -207,7 +229,8 @@ class GiftCertificateServiceTest {
     }
 
     @Test
-    void getByGiftCertificateSearchRequestPojoEmptyByNameOrDescriptionAndTagByNameTest() {
+    @DisplayName("Get by GiftCertificateSearchRequestPojo Name and Tag name Test")
+    void getByGiftCertificateSearchRequestPojoEmptyByNameOrDescriptionAndTagNameTest() {
         GiftCertificateSearchRequestPojo pojo = new GiftCertificateSearchRequestPojo();
         pojo.setTagName(TEST_NAME);
         pojo.setName(TEST_NAME_WITH_TAG);
@@ -220,6 +243,7 @@ class GiftCertificateServiceTest {
     }
 
     @Test
+    @DisplayName("Get by GiftCertificateSearchRequestPojo with Description and Tag name Test")
     void getByGiftCertificateSearchRequestPojoEmptyByNameOrDescriptionAndTagByDescriptionTest() {
         GiftCertificateSearchRequestPojo pojo = new GiftCertificateSearchRequestPojo();
         pojo.setTagName(TEST_NAME);
@@ -233,10 +257,12 @@ class GiftCertificateServiceTest {
     }
 
     @Test
+    @DisplayName("Get by GiftCertificateSearchRequestPojo with sort by name ASC Test")
     void getByGiftCertificateSearchRequestPojoEmptySortedByNameAcsTest() {
         GiftCertificateSearchRequestPojo pojo = new GiftCertificateSearchRequestPojo();
         pojo.setSortingType(SortingType.NAME);
         pojo.setSortingOrder(SortingOrder.ASC);
+
         when(giftCertificateDao.findAll()).
                 thenReturn(certificates);
 
@@ -245,21 +271,12 @@ class GiftCertificateServiceTest {
     }
 
     @Test
+    @DisplayName("Get by GiftCertificateSearchRequestPojo with sort by name DESC Test")
     void getByGiftCertificateSearchRequestPojoEmptySortedByNameDescTest() {
         GiftCertificateSearchRequestPojo pojo = new GiftCertificateSearchRequestPojo();
         pojo.setSortingType(SortingType.NAME);
-        pojo.setSortingOrder(SortingOrder.DESC);        when(giftCertificateDao.findAll()).
-                thenReturn(certificates);
+        pojo.setSortingOrder(SortingOrder.DESC);
 
-        var result = giftCertificateService.getByGiftCertificateSearchRequestPojo(pojo).get(0);
-        assertEquals(certificatesDto.get(4), result);
-    }
-
-    @Test
-    void getByGiftCertificateSearchRequestPojoEmptySortedByTimeAcsTest() {
-        GiftCertificateSearchRequestPojo pojo = new GiftCertificateSearchRequestPojo();
-        pojo.setSortingType(SortingType.TIME);
-        pojo.setSortingOrder(SortingOrder.ASC);
         when(giftCertificateDao.findAll()).
                 thenReturn(certificates);
 
@@ -268,10 +285,26 @@ class GiftCertificateServiceTest {
     }
 
     @Test
+    @DisplayName("Get by GiftCertificateSearchRequestPojo with sort by time ASC Test")
+    void getByGiftCertificateSearchRequestPojoEmptySortedByTimeAcsTest() {
+        GiftCertificateSearchRequestPojo pojo = new GiftCertificateSearchRequestPojo();
+        pojo.setSortingType(SortingType.TIME);
+        pojo.setSortingOrder(SortingOrder.ASC);
+
+        when(giftCertificateDao.findAll()).
+                thenReturn(certificates);
+
+        var result = giftCertificateService.getByGiftCertificateSearchRequestPojo(pojo).get(0);
+        assertEquals(certificatesDto.get(4), result);
+    }
+
+    @Test
+    @DisplayName("Get by GiftCertificateSearchRequestPojo with sort by time DESC Test")
     void getByGiftCertificateSearchRequestPojoEmptySortedByTimeDescTest() {
         GiftCertificateSearchRequestPojo pojo = new GiftCertificateSearchRequestPojo();
         pojo.setSortingType(SortingType.TIME);
         pojo.setSortingOrder(SortingOrder.DESC);
+
         when(giftCertificateDao.findAll()).
                 thenReturn(certificates);
 
