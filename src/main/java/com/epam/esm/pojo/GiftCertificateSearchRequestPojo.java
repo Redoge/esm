@@ -1,12 +1,15 @@
 package com.epam.esm.pojo;
 
 
+import com.epam.esm.util.sorters.enums.SortingOrder;
+import com.epam.esm.util.sorters.enums.SortingType;
+
 public class GiftCertificateSearchRequestPojo {
     private String name;
     private String description;
     private String tagName;
-    private String sortByName;
-    private String sortByTime;
+    private SortingType sortingType;
+    private SortingOrder sortingOrder;
 
     public String getName() {
         return name;
@@ -32,20 +35,20 @@ public class GiftCertificateSearchRequestPojo {
         this.tagName = tagName;
     }
 
-    public String getSortByName() {
-        return sortByName;
+    public SortingType getSortingType() {
+        return sortingType;
     }
 
-    public void setSortByName(String sortByName) {
-        this.sortByName = sortByName;
+    public void setSortingType(SortingType sortingType) {
+        this.sortingType = sortingType;
     }
 
-    public String getSortByTime() {
-        return sortByTime;
+    public SortingOrder getSortingOrder() {
+        return sortingOrder;
     }
 
-    public void setSortByTime(String sortByTime) {
-        this.sortByTime = sortByTime;
+    public void setSortingOrder(SortingOrder sortingOrder) {
+        this.sortingOrder = sortingOrder;
     }
 
     @Override
@@ -54,9 +57,8 @@ public class GiftCertificateSearchRequestPojo {
                 "name='" + name + '\'' +
                 ", description='" + description + '\'' +
                 ", tagName='" + tagName + '\'' +
-                ", sortByName='" + sortByName + '\'' +
-                ", sortByTime='" + sortByTime + '\'' +
+                ", sortingType=" + sortingType +
+                ", sortingOrder=" + sortingOrder +
                 '}';
     }
-
 }
