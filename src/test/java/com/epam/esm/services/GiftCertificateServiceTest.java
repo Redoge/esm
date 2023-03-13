@@ -10,6 +10,8 @@ import com.epam.esm.util.filters.GiftCertificateFilter;
 import com.epam.esm.util.formatters.TimeFormatter;
 import com.epam.esm.util.mappers.GiftCertificateMapper;
 import com.epam.esm.util.sorters.GiftCertificateSorter;
+import com.epam.esm.util.sorters.enums.SortingOrder;
+import com.epam.esm.util.sorters.enums.SortingType;
 import com.epam.esm.util.validators.GiftCertificateValidator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -201,7 +203,8 @@ class GiftCertificateServiceTest {
     @Test
     void getByGiftCertificateSearchRequestPojoEmptySortedByNameAcsTest() {
         GiftCertificateSearchRequestPojo pojo = new GiftCertificateSearchRequestPojo();
-        pojo.setSortByName("ASC");
+        pojo.setSortingType(SortingType.NAME);
+        pojo.setSortingOrder(SortingOrder.ASC);
         when(giftCertificateDao.findAll()).
                 thenReturn(certificates);
 
@@ -212,8 +215,8 @@ class GiftCertificateServiceTest {
     @Test
     void getByGiftCertificateSearchRequestPojoEmptySortedByNameDescTest() {
         GiftCertificateSearchRequestPojo pojo = new GiftCertificateSearchRequestPojo();
-        pojo.setSortByName("DESC");
-        when(giftCertificateDao.findAll()).
+        pojo.setSortingType(SortingType.NAME);
+        pojo.setSortingOrder(SortingOrder.DESC);        when(giftCertificateDao.findAll()).
                 thenReturn(certificates);
 
         var result = giftCertificateService.getByGiftCertificateSearchRequestPojo(pojo).get(0);
@@ -223,7 +226,8 @@ class GiftCertificateServiceTest {
     @Test
     void getByGiftCertificateSearchRequestPojoEmptySortedByTimeAcsTest() {
         GiftCertificateSearchRequestPojo pojo = new GiftCertificateSearchRequestPojo();
-        pojo.setSortByTime("ASC");
+        pojo.setSortingType(SortingType.TIME);
+        pojo.setSortingOrder(SortingOrder.ASC);
         when(giftCertificateDao.findAll()).
                 thenReturn(certificates);
 
@@ -234,7 +238,8 @@ class GiftCertificateServiceTest {
     @Test
     void getByGiftCertificateSearchRequestPojoEmptySortedByTimeDescTest() {
         GiftCertificateSearchRequestPojo pojo = new GiftCertificateSearchRequestPojo();
-        pojo.setSortByTime("DESC");
+        pojo.setSortingType(SortingType.TIME);
+        pojo.setSortingOrder(SortingOrder.DESC);
         when(giftCertificateDao.findAll()).
                 thenReturn(certificates);
 

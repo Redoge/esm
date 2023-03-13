@@ -9,7 +9,7 @@ public class GiftCertificateSearchRequestPojo {
     private String description;
     private String tagName;
     private SortingType sortingType;
-    private SortingOrder sortingOrder;
+    private SortingOrder sortingOrder = SortingOrder.ASC;
 
     public String getName() {
         return name;
