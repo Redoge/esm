@@ -7,40 +7,23 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import java.util.List;
 
-public class TagMainDto implements TagInterface {
-    private long id;
-    private String name;
+public class TagMainDto extends TagNestedDto {
+
     private List<GiftCertificateNestedDto> certificates;
 
     public TagMainDto() {
+        super();
     }
 
     public TagMainDto(long id, String name) {
-        this.id = id;
-        this.name = name;
+        super(id, name);
     }
 
     public TagMainDto(long id, String name, List<GiftCertificateNestedDto> certificates) {
-        this.id = id;
-        this.name = name;
+        super(id, name);
         this.certificates = certificates;
     }
 
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
 
     public List<GiftCertificateNestedDto> getCertificates() {
         return certificates;
@@ -61,19 +44,19 @@ public class TagMainDto implements TagInterface {
 
         TagMainDto that = (TagMainDto) o;
 
-        return new EqualsBuilder().append(id, that.id).append(name, that.name).append(certificates, that.certificates).isEquals();
+        return new EqualsBuilder().append(super.getId(), that.getId()).append(super.getName(), that.getName()).append(certificates, that.certificates).isEquals();
     }
 
     @Override
     public int hashCode() {
-        return new HashCodeBuilder(17, 37).append(id).append(name).append(certificates).toHashCode();
+        return new HashCodeBuilder(17, 37).append(super.getId()).append(super.getName()).append(certificates).toHashCode();
     }
 
     @Override
     public String toString() {
         return "Tag{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
+                "id=" + super.getId() +
+                ", name='" + super.getName() + '\'' +
                 ", certificates=" + certificates +
                 '}';
     }

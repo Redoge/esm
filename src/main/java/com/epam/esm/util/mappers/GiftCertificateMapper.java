@@ -47,14 +47,6 @@ public class GiftCertificateMapper {
     }
 
     public GiftCertificateNestedDto mapGiftCertToNestedDto(GiftCertificate giftCertificate) {
-        var cert = new GiftCertificateNestedDto();
-        cert.setId(giftCertificate.getId());
-        cert.setName(giftCertificate.getName());
-        cert.setDescription(giftCertificate.getDescription());
-        cert.setDuration(giftCertificate.getDuration());
-        cert.setPrice(giftCertificate.getPrice());
-        cert.setCreateDate(timeFormatter.timeToIso8601(giftCertificate.getCreateDate()));
-        cert.setLastUpdateDate(timeFormatter.timeToIso8601(giftCertificate.getLastUpdateDate()));
-        return cert;
+        return mapGiftCertToMainDto(giftCertificate);
     }
 }

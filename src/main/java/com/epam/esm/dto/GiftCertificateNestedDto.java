@@ -17,6 +17,16 @@ public class GiftCertificateNestedDto implements GiftCertificateInterface {
     public GiftCertificateNestedDto() {
     }
 
+    public GiftCertificateNestedDto(long id, String name, String description, BigDecimal price, int duration, String createDate, String lastUpdateDate) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.price = price;
+        this.duration = duration;
+        this.createDate = createDate;
+        this.lastUpdateDate = lastUpdateDate;
+    }
+
     public long getId() {
         return id;
     }
