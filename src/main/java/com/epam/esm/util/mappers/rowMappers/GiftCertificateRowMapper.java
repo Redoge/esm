@@ -89,10 +89,9 @@ public class GiftCertificateRowMapper implements RowMapper<GiftCertificate>, ToL
     private TagNestedDto buildTagNestedDto(Map<String, Object> rowMap) {
         if (rowMap.get(TagField.ID) == null)
             return null;
-        var tag = new TagNestedDto();
-        tag.setId(parseLong(valueOf(rowMap.get(TagField.ID))));
-        tag.setName(valueOf(rowMap.get(TagField.NAME)));
-        return tag;
+        var id = parseLong(valueOf(rowMap.get(TagField.ID)));
+        var name = valueOf(rowMap.get(TagField.NAME));
+        return new TagNestedDto(id, name);
     }
 
     protected GiftCertificate mapResultSetToGiftCertificate(ResultSet resultSet) throws SQLException {

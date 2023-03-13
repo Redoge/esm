@@ -8,7 +8,6 @@ import com.epam.esm.models.interfaces.TagInterface;
 import com.epam.esm.util.filters.TagFilter;
 import com.epam.esm.util.mappers.rowMappers.GiftCertificateRowMapper;
 import io.micrometer.common.util.StringUtils;
-import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;

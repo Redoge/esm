@@ -28,7 +28,9 @@ class TagServiceTest {
     private final List<TagMainDto> tagDtoList = tagList.stream()
             .map(tagMapper::mapTagToMainDto).toList();
 
-
+    private final long TEST_ID = 1L;
+    private final String TEST_NAME = "name2";
+    private final String TEST_NAME_INCORRECT = "name969";
     @Test
     void getAllTest() {
         when(tagDao.findAll()).thenReturn(tagList);
@@ -41,39 +43,42 @@ class TagServiceTest {
     void getByIdTest() {
         when(tagDao.findById(1L)).thenReturn(Optional.ofNullable(tagList.get(0)));
 
-        var result = service.getById(1L).get();
+        var result = service.getById(TEST_ID).get();
         assertEquals(tagDtoList.get(0), result);
     }
 
     @Test
     void getByNameTest() {
-        when(tagDao.findByName("name2")).thenReturn(Optional.ofNullable(tagList.get(1)));
+        when(tagDao.findByName(TEST_NAME)).thenReturn(Optional.ofNullable(tagList.get(1)));
 
-        var result = service.getByName("name2").get();
+        var result = service.getByName(TEST_NAME).get();
         assertEquals(tagDtoList.get(1), result);
     }
 
     @Test
     void deleteByIdTest() {
-        when(tagDao.deleteById(3L)).thenReturn(true);
+        when(tagDao.deleteById(TEST_ID)).thenReturn(true);
 
-        assertTrue(service.deleteById(3L));
+        var result = service.deleteById(TEST_ID);
+        assertTrue(result);
     }
 
     @Test
     void saveTest() {
-        when(tagDao.saveByName("name56")).thenReturn(true);
+        when(tagDao.saveByName(TEST_NAME_INCORRECT)).thenReturn(true);
 
-        assertTrue(service.save("name56"));
+        var result = service.save(TEST_NAME_INCORRECT);
+        assertTrue(result);
     }
 
-
-    private List<Tag> createTagListForTest() {
+    private List<Tag> createTagListForTest(){
         var tagList = new ArrayList<Tag>();
-        for(int i = 1; i <= 5; i++){
-            var name = "name"+i;
-            tagList.add(new Tag(i, name, List.of()));
-        }
+        tagList.add(new Tag(1, "name1", List.of()));
+        tagList.add(new Tag(2, "name2", List.of()));
+        tagList.add(new Tag(3, "name3", List.of()));
+        tagList.add(new Tag(4, "name4", List.of()));
+        tagList.add(new Tag(5, "name5", List.of()));
         return tagList;
     }
+
 }

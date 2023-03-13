@@ -41,103 +41,135 @@ class GiftCertificateServiceTest {
             .stream()
             .map(giftCertificateMapper::mapGiftCertToMainDto)
             .toList();
-
+    private final long TEST_ID = 1L;
+    private final String TEST_NAME = "name1";
+    private final String TEST_NAME_WITH_TAG = "name4";
+    private final String TEST_NAME_INCORRECT = "name969";
+    private final String TEST_DESCRIPTION = "description3";
     @Test
     void getAllTest() {
         when(giftCertificateDao.findAll()).thenReturn(certificates);
-        assertEquals(giftCertificateService.getAll(), certificatesDto);
+
+        var result = giftCertificateService.getAll();
+        assertEquals(certificatesDto, result);
     }
 
     @Test
     void getAllEmptyTest() {
         when(giftCertificateDao.findAll()).thenReturn(List.of());
-        assertEquals(List.of(), giftCertificateService.getAll());
+
+        var result = giftCertificateService.getAll();
+        assertEquals(List.of(), result);
     }
 
     @Test
     void getByIdTest() {
-        when(giftCertificateDao.findById(1L)).thenReturn(Optional.ofNullable(certificates.get(0)));
-        assertEquals(certificatesDto.get(0), giftCertificateService.getById(1L).get());
+        when(giftCertificateDao.findById(TEST_ID)).thenReturn(Optional.ofNullable(certificates.get(0)));
+
+        var result = giftCertificateService.getById(TEST_ID).get();
+        assertEquals(certificatesDto.get(0), result);
     }
 
     @Test
     void getByIdEmptyTest() {
-        when(giftCertificateDao.findById(99L)).thenReturn(Optional.empty());
-        assertEquals(giftCertificateService.getById(99L), Optional.empty());
+        when(giftCertificateDao.findById(TEST_ID)).thenReturn(Optional.empty());
+
+        var result = giftCertificateService.getById(TEST_ID);
+        assertEquals(Optional.empty(), result);
     }
 
     @Test
     void getByNameTest() {
-        when(giftCertificateDao.findByName("Name2")).thenReturn(Optional.ofNullable(certificates.get(1)));
-        assertEquals(certificatesDto.get(1), giftCertificateService.getByName("Name2").get());
+        when(giftCertificateDao.findByName(TEST_NAME)).thenReturn(Optional.ofNullable(certificates.get(0)));
+
+        var result = giftCertificateService.getByName(TEST_NAME).get();
+        assertEquals(certificatesDto.get(0), result);
     }
 
     @Test
     void getByNameEmptyTest() {
-        when(giftCertificateDao.findByName("Name5")).thenReturn(Optional.empty());
-        assertEquals(Optional.empty(), giftCertificateService.getByName("Name5"));
+        when(giftCertificateDao.findByName(TEST_NAME_INCORRECT)).thenReturn(Optional.empty());
+
+        var result = giftCertificateService.getByName(TEST_NAME_INCORRECT);
+        assertEquals(Optional.empty(), result);
     }
 
     @Test
     void getByPartNameOrDescriptionAndTagNameTest() {
-        when(giftCertificateDao.findByPartNameOrDescription("Name4")).
+        when(giftCertificateDao.findByPartNameOrDescription(TEST_NAME_WITH_TAG)).
                 thenReturn(List.of(certificates.get(3)));
-        assertEquals(List.of(certificatesDto.get(3)),
-                giftCertificateService.getByPartNameOrDescriptionAndTagName("Name4", "name1"));
+
+        var result = giftCertificateService.getByPartNameOrDescriptionAndTagName(TEST_NAME_WITH_TAG, TEST_NAME);
+        assertEquals(List.of(certificatesDto.get(3)), result);
     }
 
     @Test
     void getByPartNameOrDescriptionAndTagNameEmptyTest() {
-        when(giftCertificateDao.findByPartNameOrDescription("Name4")).
+        when(giftCertificateDao.findByPartNameOrDescription(TEST_NAME_WITH_TAG)).
                 thenReturn(List.of(certificates.get(3)));
-        assertEquals(List.of(), giftCertificateService.getByPartNameOrDescriptionAndTagName("Name4", "name0"));
+
+        var result = giftCertificateService.getByPartNameOrDescriptionAndTagName(TEST_NAME_WITH_TAG, TEST_NAME_INCORRECT);
+        assertEquals(List.of(), result);
     }
 
     @Test
     void getByPartNameOrDescriptionByNameTest() {
-        when(giftCertificateDao.findByPartNameOrDescription("Name4")).
+        when(giftCertificateDao.findByPartNameOrDescription(TEST_NAME_WITH_TAG)).
                 thenReturn(List.of(certificates.get(3)));
-        assertEquals(List.of(certificatesDto.get(3)), giftCertificateService.getByPartNameOrDescription("Name4"));
+
+        var result = giftCertificateService.getByPartNameOrDescription(TEST_NAME_WITH_TAG);
+        assertEquals(List.of(certificatesDto.get(3)), result);
     }
 
     @Test
     void getByPartNameOrDescriptionByDescriptionTest() {
-        when(giftCertificateDao.findByPartNameOrDescription("Description4")).
+        when(giftCertificateDao.findByPartNameOrDescription(TEST_DESCRIPTION)).
                 thenReturn(List.of(certificates.get(3)));
-        assertEquals(List.of(certificatesDto.get(3)), giftCertificateService.getByPartNameOrDescription("Description4"));
+
+        var result = giftCertificateService.getByPartNameOrDescription(TEST_DESCRIPTION);
+        assertEquals(List.of(certificatesDto.get(3)), result);
     }
 
     @Test
     void getByPartNameOrDescriptionEmptyTest() {
-        when(giftCertificateDao.findByPartNameOrDescription("Description99")).
+        when(giftCertificateDao.findByPartNameOrDescription(TEST_DESCRIPTION)).
                 thenReturn(List.of());
-        assertEquals(List.of(), giftCertificateService.getByPartNameOrDescription("Description99"));
+
+        var result = giftCertificateService.getByPartNameOrDescription(TEST_DESCRIPTION);
+        assertEquals(List.of(), result);
     }
 
     @Test
     void getByTagNameTest() {
         when(giftCertificateDao.findAll()).
                 thenReturn(certificates);
-        assertEquals(List.of(certificatesDto.get(2), certificatesDto.get(3)), giftCertificateService.getByTagName("name1"));
+
+        var result = giftCertificateService.getByTagName(TEST_NAME);
+        assertEquals(List.of(certificatesDto.get(2),certificatesDto.get(3)), result);
     }
 
     @Test
     void getByTagNameEmptyTest() {
         when(giftCertificateDao.findAll()).
                 thenReturn(certificates);
-        assertEquals(List.of(), giftCertificateService.getByTagName("name989"));
+
+        var result = giftCertificateService.getByTagName(TEST_NAME_INCORRECT);
+        assertEquals(List.of(), result);
     }
 
     @Test
     void deleteByIdTest() {
-        when(giftCertificateDao.deleteById(1L)).
+        when(giftCertificateDao.deleteById(TEST_ID)).
                 thenReturn(true);
-        assertTrue(giftCertificateService.deleteById(1L));
+
+        var result = giftCertificateService.deleteById(TEST_ID);
+        assertTrue(result);
     }
 
     @Test
     void saveFailedTest() {
-        assertFalse(giftCertificateService.save(new GiftCertificateSaveRequestPojo()));
+        var result = giftCertificateService.save(new GiftCertificateSaveRequestPojo());
+        assertFalse(result);
     }
 
 
@@ -154,8 +186,8 @@ class GiftCertificateServiceTest {
     @Test
     void getByGiftCertificateSearchRequestPojoByNameOrDescriptionTest() {
         GiftCertificateSearchRequestPojo pojo = new GiftCertificateSearchRequestPojo();
-        pojo.setName("name1");
-        when(giftCertificateDao.findByPartNameOrDescription("name1")).
+        pojo.setName(TEST_NAME);
+        when(giftCertificateDao.findByPartNameOrDescription(TEST_NAME)).
                 thenReturn(List.of(certificates.get(0)));
 
         var result = giftCertificateService.getByGiftCertificateSearchRequestPojo(pojo);
@@ -166,7 +198,7 @@ class GiftCertificateServiceTest {
     @Test
     void getByGiftCertificateSearchRequestPojoByTagTest() {
         GiftCertificateSearchRequestPojo pojo = new GiftCertificateSearchRequestPojo();
-        pojo.setTagName("name1");
+        pojo.setTagName(TEST_NAME);
         when(giftCertificateDao.findAll()).
                 thenReturn(certificates);
 
@@ -177,10 +209,10 @@ class GiftCertificateServiceTest {
     @Test
     void getByGiftCertificateSearchRequestPojoEmptyByNameOrDescriptionAndTagByNameTest() {
         GiftCertificateSearchRequestPojo pojo = new GiftCertificateSearchRequestPojo();
-        pojo.setTagName("name1");
-        pojo.setName("name4");
+        pojo.setTagName(TEST_NAME);
+        pojo.setName(TEST_NAME_WITH_TAG);
 
-        when(giftCertificateDao.findByPartNameOrDescription("name4")).
+        when(giftCertificateDao.findByPartNameOrDescription(TEST_NAME_WITH_TAG)).
                 thenReturn(List.of(certificates.get(3)));
 
         var result = giftCertificateService.getByGiftCertificateSearchRequestPojo(pojo);
@@ -190,10 +222,10 @@ class GiftCertificateServiceTest {
     @Test
     void getByGiftCertificateSearchRequestPojoEmptyByNameOrDescriptionAndTagByDescriptionTest() {
         GiftCertificateSearchRequestPojo pojo = new GiftCertificateSearchRequestPojo();
-        pojo.setTagName("name1");
-        pojo.setDescription("Description3");
+        pojo.setTagName(TEST_NAME);
+        pojo.setDescription(TEST_DESCRIPTION);
 
-        when(giftCertificateDao.findByPartNameOrDescription("Description3")).
+        when(giftCertificateDao.findByPartNameOrDescription(TEST_DESCRIPTION)).
                 thenReturn(new ArrayList<>(List.of(certificates.get(2))));
 
         var result = giftCertificateService.getByGiftCertificateSearchRequestPojo(pojo);
