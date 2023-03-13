@@ -63,6 +63,7 @@ public class GiftCertificateDao implements GiftCertificateDaoInterface {
     private final TagDaoInterface tagDao;
     private final TagFilter tagFilter;
     private final GiftCertificateTagInterface giftCertificateTagDao;
+    private final String SQL_WILDCARDS = "%";
 
     public GiftCertificateDao(JdbcTemplate jdbcTemplate, GiftCertificateRowMapper giftCertificateRowMapper, TagDaoInterface tagDao, TagFilter tagFilter, GiftCertificateTagInterface giftCertificateTagDao) {
         this.jdbcTemplate = jdbcTemplate;
@@ -98,13 +99,15 @@ public class GiftCertificateDao implements GiftCertificateDaoInterface {
     @Override
     public List<GiftCertificate> findByPartNameOrDescriptionAndTagName(String nameOrDescription, String tagName) {
         return giftCertificateRowMapper.mapRowToList(jdbcTemplate.queryForList(FIND_BY_PART_NAME_OR_DESCRIPTION_AND_TAG_NAME,
-                "%" + nameOrDescription + "%", "%" + nameOrDescription + "%", tagName));
+                SQL_WILDCARDS + nameOrDescription + SQL_WILDCARDS,
+                SQL_WILDCARDS + nameOrDescription + SQL_WILDCARDS, tagName));
     }
 
     @Override
     public List<GiftCertificate> findByPartNameOrDescription(String nameOrDescription) {
         return giftCertificateRowMapper.mapRowToList(jdbcTemplate.queryForList(FIND_BY_PART_NAME_OR_DESCRIPTION,
-                "%" + nameOrDescription + "%", "%" + nameOrDescription + "%"));
+                SQL_WILDCARDS + nameOrDescription + SQL_WILDCARDS,
+                SQL_WILDCARDS + nameOrDescription + SQL_WILDCARDS));
     }
 
     @Override
@@ -115,14 +118,14 @@ public class GiftCertificateDao implements GiftCertificateDaoInterface {
     @Override
     public boolean update(GiftCertificate gCert) {
         var gCertId = gCert.getId();
-        GiftCertificate oldGc = findById(gCertId).orElse(null);
+        GiftCertificate oldGCert = findById(gCertId).orElse(null);
         //if id <= 0 -> bad request
-        if (oldGc == null || gCertId <= 0) return false;
-        boolean correct = updateOnlyNewFieldsGiftCertificate(oldGc, gCert, gCertId);
+        if (oldGCert == null || gCertId <= 0) return false;
+        boolean correct = updateOnlyNewFieldsGiftCertificate(oldGCert, gCert, gCertId);
         if (!correct) return false;
         //If the tags have not received (is null) anything to do
         if(gCert.getTags()==null) return true;
-        List<TagInterface> oldTags = oldGc.getTags();
+        List<TagInterface> oldTags = oldGCert.getTags();
         List<TagInterface> newTags = gCert.getTags();
         if (oldTags.equals(newTags) && StringUtils.isNotEmpty(oldTags.get(0).getName()))
             return false;
@@ -141,9 +144,9 @@ public class GiftCertificateDao implements GiftCertificateDaoInterface {
     public boolean save(GiftCertificate gCert) {
         boolean success = jdbcTemplate.update(SAVE_QUERY, gCert.getName(), gCert.getDescription(), gCert.getPrice(),
                 gCert.getDuration(), LocalDateTime.now(), LocalDateTime.now(), gCert.getName()) == 1;
-        Optional<GiftCertificate> createdGc = findByName(gCert.getName());
-        if (success && isNotEmpty(gCert.getTags()) && createdGc.isPresent()) {
-            addNewTagToCertificate(gCert.getTags(), createdGc.get().getId());
+        Optional<GiftCertificate> createdGCert = findByName(gCert.getName());
+        if (success && isNotEmpty(gCert.getTags()) && createdGCert.isPresent()) {
+            addNewTagToCertificate(gCert.getTags(), createdGCert.get().getId());
         }
         return success;
     }
@@ -170,18 +173,18 @@ public class GiftCertificateDao implements GiftCertificateDaoInterface {
             giftCertificateTagDao.removeFromGiftCertificateByTagIdAndCertId(tagDao.findByName(tag.getName()).get().getId(), certId);
         }
     }
-    private boolean updateOnlyNewFieldsGiftCertificate(GiftCertificate oldGc, GiftCertificate newGc, long id){
-        boolean diffName = newGc.getName() != null && !newGc.getName().equals(oldGc.getName());
-        boolean diffDescription = newGc.getDescription() != null && !newGc.getDescription().equals(oldGc.getDescription());
-        boolean diffPrice = newGc.getPrice() != null && !newGc.getPrice().equals(oldGc.getPrice());
-        boolean diffDuration = newGc.getDuration() != 0 && (newGc.getDuration() != oldGc.getDuration());
+    private boolean updateOnlyNewFieldsGiftCertificate(GiftCertificate oldGCert, GiftCertificate newGCert, long id){
+        boolean diffName = newGCert.getName() != null && !newGCert.getName().equals(oldGCert.getName());
+        boolean diffDescription = newGCert.getDescription() != null && !newGCert.getDescription().equals(oldGCert.getDescription());
+        boolean diffPrice = newGCert.getPrice() != null && !newGCert.getPrice().equals(oldGCert.getPrice());
+        boolean diffDuration = newGCert.getDuration() != 0 && (newGCert.getDuration() != oldGCert.getDuration());
         boolean needToUpdate = (diffName || diffDescription || diffPrice || diffDuration);
         if (needToUpdate) {
             try{
-                jdbcTemplate.update(UPDATE_ONLY_GC_QUERY, diffName ? newGc.getName() : oldGc.getName(),
-                        diffDescription ? newGc.getDescription() : oldGc.getDescription(),
-                        diffPrice ? newGc.getPrice() : oldGc.getPrice(),
-                        diffDuration ? newGc.getDuration() : oldGc.getDuration(),
+                jdbcTemplate.update(UPDATE_ONLY_GC_QUERY, diffName ? newGCert.getName() : oldGCert.getName(),
+                        diffDescription ? newGCert.getDescription() : oldGCert.getDescription(),
+                        diffPrice ? newGCert.getPrice() : oldGCert.getPrice(),
+                        diffDuration ? newGCert.getDuration() : oldGCert.getDuration(),
                         LocalDateTime.now(),
                         id);
             }catch (DataAccessException e){

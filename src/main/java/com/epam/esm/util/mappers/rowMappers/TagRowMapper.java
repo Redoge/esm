@@ -44,7 +44,7 @@ public class TagRowMapper implements RowMapper<Tag>, ToListRowMapperInterface<Ta
             return List.of();
         rows.sort(Comparator.comparing(k -> Long.parseLong(String.valueOf(k.get(TagField.ID)))));
 
-        List<Tag> result = new ArrayList<>();
+        List<Tag> tags = new ArrayList<>();
         Map<Long, List<GiftCertificate>> resultCertificatesMap = new HashMap<>();
         Tag tag = null;
         Map<String, Object> rowMap;
@@ -61,19 +61,19 @@ public class TagRowMapper implements RowMapper<Tag>, ToListRowMapperInterface<Ta
                     resultCertificatesMap.computeIfAbsent(tag.getId(), k -> new ArrayList<>()).add(gCert);
                 }
             } else {
-                result.add(tag);
+                tags.add(tag);
                 tag = null;
                 i--;
             }
         }
-        result.add(tag);
-        addGiftCertificateToTag(result, resultCertificatesMap);
-        return result;
+        tags.add(tag);
+        addGiftCertificateToTag(tags, resultCertificatesMap);
+        return tags;
     }
 
     private void addGiftCertificateToTag(
-            List<Tag> result, Map<Long, List<GiftCertificate>> resultCertificatesMap){
-        for(var tag: result){
+            List<Tag> tags, Map<Long, List<GiftCertificate>> resultCertificatesMap){
+        for(var tag: tags){
             if(resultCertificatesMap.get(tag.getId())!=null) {
                 tag.setCertificates(resultCertificatesMap.get(tag.getId()));
             } else {

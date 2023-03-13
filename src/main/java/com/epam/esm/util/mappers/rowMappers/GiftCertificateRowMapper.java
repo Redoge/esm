@@ -76,8 +76,8 @@ public class GiftCertificateRowMapper implements RowMapper<GiftCertificate>, ToL
     }
 
     private void addTagNestedDtoToGiftCertificate(
-        List<GiftCertificate> result, Map<Long, List<TagInterface>> resultTagMap){
-        for(var gCert: result){
+        List<GiftCertificate> gCerts, Map<Long, List<TagInterface>> resultTagMap){
+        for(var gCert: gCerts){
             if(resultTagMap.get(gCert.getId())!=null) {
                 gCert.setTags(resultTagMap.get(gCert.getId()));
             }else{
@@ -89,10 +89,10 @@ public class GiftCertificateRowMapper implements RowMapper<GiftCertificate>, ToL
     private TagNestedDto buildTagNestedDto(Map<String, Object> rowMap) {
         if (rowMap.get(TagField.ID) == null)
             return null;
-        var result = new TagNestedDto();
-        result.setId(parseLong(valueOf(rowMap.get(TagField.ID))));
-        result.setName(valueOf(rowMap.get(TagField.NAME)));
-        return result;
+        var tag = new TagNestedDto();
+        tag.setId(parseLong(valueOf(rowMap.get(TagField.ID))));
+        tag.setName(valueOf(rowMap.get(TagField.NAME)));
+        return tag;
     }
 
     protected GiftCertificate mapResultSetToGiftCertificate(ResultSet resultSet) throws SQLException {

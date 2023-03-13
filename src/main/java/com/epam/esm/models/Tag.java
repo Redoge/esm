@@ -67,9 +67,9 @@ public class Tag implements TagInterface {
 
     @Override
     public int hashCode() {
-        int result = (int) (id ^ (id >>> 32));
-        result = 31 * result + name.hashCode();
-        return result;
+        int hachCode = (int) (id ^ (id >>> 32));
+        hachCode = 31 * hachCode + name.hashCode();
+        return hachCode;
     }
 
     @Override
